@@ -27,7 +27,7 @@ const questionSchema = new Schema({
     isLockedForCount: {
         type: Number,
         default: 0,
-        min: 0,
+        min: 0
     }
 });
 
@@ -99,7 +99,7 @@ const shopUpgradeSchema = new Schema({
             type: Number,
             default: 100,
             min: 1
-        },
+        }
     },
     costIncrease: {
         type: Number,
@@ -128,7 +128,7 @@ const rarityChancesSchema = new Schema({
     legendary: {
         type: Number,
         default: 5
-    },
+    }
 });
 
 const boardSchema = new Schema({
