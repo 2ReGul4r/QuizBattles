@@ -1,21 +1,14 @@
 import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 
-const questionSchema = new Schema({
-    question: {
-        type: string,
-        required: true
+const quizStateQuestionSchema = new Schema({
+    hasPicture: {
+        type: Boolean,
+        default: false
     },
-    answer: {
-        type: String,
-        required: true
-    },
-    picture: {
-        data: Buffer
-    },
-    audio: {
-        data: Buffer,
-        contentType: String
+    hasAaudio: {
+        type: Boolean,
+        default: false
     },
     worth: {
         type: Number,
@@ -33,7 +26,7 @@ const questionSchema = new Schema({
     }
 });
 
-const categorySchema = new Schema({
+const quizStateCategorySchema = new Schema({
     title: {
         type: String,
         required: true
@@ -41,7 +34,7 @@ const categorySchema = new Schema({
     questions: [questionSchema],
 });
 
-const shopRerollSchema = new Schema({
+const quizStateShopRerollSchema = new Schema({
     enabled: {
         type: Boolean,
         default: true
@@ -67,7 +60,7 @@ const shopRerollSchema = new Schema({
     }
 });
 
-const shopUpgradeSchema = new Schema({
+const quizStateShopUpgradeSchema = new Schema({
     enabled: {
         type: Boolean,
         default: true
@@ -110,7 +103,7 @@ const shopUpgradeSchema = new Schema({
     }
 });
 
-const rarityChancesSchema = new Schema({
+const quizStateRarityChancesSchema = new Schema({
     common: {
         type: Number,
         default: 40
@@ -133,11 +126,7 @@ const rarityChancesSchema = new Schema({
     }
 });
 
-const boardSchema = new Schema({
-    owner: {
-        type: Schema.Types.ObjectId,
-        required: true
-    },
+const quizStateSchema = new Schema({
     categories: [categorySchema],
     options: {
         quiz: {
@@ -168,9 +157,9 @@ const boardSchema = new Schema({
                     type: Boolean,
                     default: true
                 },
-                reroll: shopRerollSchema,
-                upgrade: shopUpgradeSchema,
-                rarities: rarityChancesSchema,
+                reroll: quizStateShopRerollSchema,
+                upgrade: quizStateShopUpgradeSchema,
+                rarities: quizStateRarityChancesSchema,
                 intervalCount: {
                     type: Number,
                     default: 5
@@ -189,9 +178,9 @@ const boardSchema = new Schema({
                     type: Boolean,
                     default: true
                 },
-                reroll: shopRerollSchema,
-                upgrade: shopUpgradeSchema,
-                rarities: rarityChancesSchema,
+                reroll: quizStateShopRerollSchema,
+                upgrade: quizStateShopUpgradeSchema,
+                rarities: quizStateRarityChancesSchema,
                 itemCount: {
                     type: Number,
                     default: 10
@@ -205,6 +194,6 @@ const boardSchema = new Schema({
     }
 });
 
-const Board = mongoose.model("Board", boardSchema);
+const QuizState = mongoose.model("QuizState", quizStateSchema);
 
-export default Board;
+export default QuizState;
