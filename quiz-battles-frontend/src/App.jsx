@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from "react-hot-toast";
 
 import { UserProvider } from "./contexts/UserContext";
 
@@ -25,24 +25,26 @@ function App() {
   }
   return (
     <Router>
-      <Toaster position="bottom-right" toastOptions={toastOptions} />
       <UserProvider>
+        <Toaster position="bottom-right" toastOptions={toastOptions} />
         <NavBar/>
-          <div className="m-8">
-            <Routes>
-              <Route path="/" element={<Home/>}/>
-              <Route path="/game" element={<Game/>}/>
-              <Route element={<LoggedInRoutes/>}>
-                <Route path="/create" element={<CreateQuizBattle/>}/>
-              </Route>
-              <Route element={<LoggedOutRoutes/>}>
-                <Route path="/login" element={<Login/>}/>
-                <Route path="/signup" element={<SignUp/>}/>
-              </Route>
-              <Route element={<AdminRoutes/>}>
-                <Route path="/createitem" element={<CreateItem/>}/>
-              </Route>
-            </Routes>
+          <div className="main-content">
+            <div className="m-8">
+              <Routes>
+                <Route path="/" element={<Home/>}/>
+                <Route path="/game" element={<Game/>}/>
+                <Route element={<LoggedInRoutes/>}>
+                  <Route path="/create" element={<CreateQuizBattle/>}/>
+                </Route>
+                <Route element={<LoggedOutRoutes/>}>
+                  <Route path="/login" element={<Login/>}/>
+                  <Route path="/signup" element={<SignUp/>}/>
+                </Route>
+                <Route element={<AdminRoutes/>}>
+                  <Route path="/createitem" element={<CreateItem/>}/>
+                </Route>
+              </Routes>
+            </div>
           </div>
       </UserProvider>
     </Router>

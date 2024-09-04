@@ -5,10 +5,6 @@ const Home = () => {
   const { state } = useUser();
   const navigate = useNavigate();
 
-  const handleLoginNavigate = () => {
-    navigate("/login");
-}
-
   return (
     <div className="flex items-stretch flex-wrap gap-8 mx-6 justify-center flex-row">
       <div className="card bg-base-200 shadow-xl items-center text-center flex-grow basis-60">
@@ -25,7 +21,7 @@ const Home = () => {
           <h2 className="card-title self-center pb-4">Create a QuizBattle</h2>
           <p className="pb-4">Here you can create your own QuizBattle-board.</p>
           <div className="card-actions justify-end">
-            <button className="btn btn-primary w-full">Create Now</button>
+            <button className="btn btn-primary w-full" onClick={() => navigate("/create")}>Create Now</button>
           </div>
         </div>
       </div>
@@ -34,7 +30,7 @@ const Home = () => {
           <h2 className="card-title self-center pb-4">Host your Game</h2>
           <p className="pb-4">Your board is ready and you want to play.</p>
           <div className="card-actions justify-end">
-            <button className="btn btn-primary w-full">Play Now</button>
+            <button className="btn btn-primary w-full" onClick={() => navigate("/play")}>Play Now</button>
           </div>
         </div>
       </div>
@@ -44,8 +40,8 @@ const Home = () => {
             <h2 className="card-title self-center pb-4">Please login</h2>
             <p className="pb-4">You can only create a Quiz with if you are logged in!</p>
             <div className="card-actions justify-evenly">
-              <button className="btn btn-primary self-start flex-grow">Signup</button>
-              <button className="btn btn-primary self-end flex-grow" onClick={handleLoginNavigate}>Login</button>
+              <button className="btn btn-primary self-start flex-grow" onClick={() => navigate("/signup")}>Signup</button>
+              <button className="btn btn-primary self-end flex-grow" onClick={() => navigate("/login")}>Login</button>
             </div>
           </div>
         </div>

@@ -1,13 +1,11 @@
 import express from "express";
-import { createBoard, readBoard, updateBoard, deleteBoard } from "../controllers/board.controller.js";
+import { saveBoard, readBoard, deleteBoard } from "../controllers/board.controller.js";
 
 const router = express.Router();
 
-router.post("/create", createBoard);
+router.post("/save", saveBoard);
 
 router.post("/read", readBoard)
-
-router.post("/update", updateBoard);
 
 router.post("/delete", deleteBoard);
 

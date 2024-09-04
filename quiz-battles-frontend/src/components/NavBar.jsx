@@ -35,13 +35,17 @@ const NavBar = () => {
                     src="/QuizBattles.png"
                     onClick={handleHomeNavigate}
                 />
-                <a className="btn btn-ghost text-xl" onClick={handleHomeNavigate}>QuizBattles</a>
+                <a className="text-xl font-semibold cursor-pointer" onClick={handleHomeNavigate}>QuizBattles</a>
             </div>
             <div className="navbar-end">
                 {state.userID ? (
                     <div className="dropdown dropdown-end dropdown-hover">
-                        <div tabIndex={0} role="button" className="btn btn-ghost btn-circle bg-gray-700">{state.username.slice(0, 2)}</div>
-                        <ul tabIndex={0} className="menu dropdown-content bg-base-200 rounded-box z-[1] w-52 p-2 shadow">
+                        <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar placeholder">
+                            <div className="bg-neutral text-neutral-content w-12 rounded-full">
+                                <span>{state.username.slice(0, 2)}</span>
+                            </div>
+                        </div>
+                        <ul tabIndex={0} className="menu dropdown-content bg-base-200 rounded-box z-10 w-52 p-2 shadow">
                             <li><a className="btn btn-ghost">Profile</a></li>
                             <li className="text-red-600"><a className="btn btn-ghost" onClick={handleLogout}>Logout</a></li>
                         </ul>
@@ -57,7 +61,7 @@ const NavBar = () => {
                                 <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
                                     <FontAwesomeIcon icon={faUsersBetweenLines} />
                                 </div>
-                                <ul tabIndex={0} className="dropdown-content menu bg-base-200 rounded-box z-[1] w-52 p-2 shadow">
+                                <ul tabIndex={0} className="dropdown-content menu bg-base-200 rounded-box z-10 w-52 p-2 shadow">
                                     <li><a onClick={clickLogin}>Login</a></li>
                                     <li><a onClick={clickSignUp}>Register</a></li>
                                 </ul>

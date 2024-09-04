@@ -1,3 +1,23 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+html {
+  scrollbar-gutter: auto !important;
+}
+
+body.modal-open {
+  scrollbar-gutter: unset;
+}
+
+.main-content {
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  height: calc(100vh - 60px);
+}
+
 .rarity-Common {
   filter: drop-shadow(0 0 0.5rem #bbbbbb);
 }
@@ -26,6 +46,32 @@
 
 .login-card-width {
   width: clamp(16rem, 100%, 32rem);
+}
+
+fieldset[disabled] label {
+  cursor: not-allowed;
+  --tw-border-opacity: 1;
+  border-color: var(--fallback-b2, oklch(var(--b2) / var(--tw-border-opacity)));
+  --tw-bg-opacity: 1;
+  background-color: var(--fallback-b2, oklch(var(--b2) / var(--tw-bg-opacity)));
+  color: var(--fallback-bc, oklch(var(--bc) / 0.4));
+}
+
+.spinner::-webkit-outer-spin-button,
+.spinner::-webkit-inner-spin-button {
+  margin-left: 4px;
+}
+
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.no-spinner {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
 }
 
 .item-card {

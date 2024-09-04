@@ -62,8 +62,8 @@ const SignUp = () => {
               className="input input-bordered w-full mb-4"
             />
             <div className="card-actions items-center flex flex-col">
-              <a className="btn-link w-full cursor-pointer text-center mb-4" onClick={clickLogin}>Already have an account?</a>
-              <button className="btn btn-primary w-full">Register</button>
+              <a className="link link-primary text-center mb-4" onClick={clickLogin}>Already have an account?</a>
+              <button className="btn btn-primary w-full" type="submit" onClick={handleSubmit}>Register</button>
             </div>
           </form>
         </div>

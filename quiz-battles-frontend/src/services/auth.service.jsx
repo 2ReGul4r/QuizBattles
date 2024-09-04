@@ -1,6 +1,5 @@
 import axios from "axios";
 
-//const API_URL = "https://mylevel.eu:5000/api";
 const API_URL = "http://localhost:5000/api";
 
 export const loginAxios = async (userdata) => {

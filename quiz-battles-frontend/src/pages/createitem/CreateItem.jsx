@@ -41,7 +41,7 @@ const CreateItem = () => {
       )}
       <div className="divider divider-primary"/>
       <label className="input input-bordered flex items-center gap-2">
-        Itemname
+        Itemname: 
         <input type="text" className="grow" />
       </label>
       <div className="divider divider-primary"/>
