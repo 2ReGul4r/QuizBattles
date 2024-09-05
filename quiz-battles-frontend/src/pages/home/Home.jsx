@@ -1,5 +1,6 @@
 import { useUser } from "../../contexts/UserContext";
 import { useNavigate } from "react-router-dom";
+import MyBoardsList from "../../components/MyBoardsList";
 
 const Home = () => {
   const { state } = useUser();
@@ -8,25 +9,25 @@ const Home = () => {
   return (
     <div className="flex items-stretch flex-wrap gap-8 mx-6 justify-center flex-row">
       <div className="card bg-base-200 shadow-xl items-center text-center flex-grow basis-60">
-        <div className="card-body">
+        <div className="card-body w-full">
           <h2 className="card-title self-center pb-4">Join a Game</h2>
-            <input type="text" placeholder="Gamecode" className="input input-bordered w-full max-w-xs mb-4"></input>
+            <input type="text" placeholder="Gamecode" className="input input-bordered w-full mb-4"></input>
           <div className="card-actions justify-end">
             <button className="btn btn-primary w-full">Join Now</button>
           </div>
         </div>
       </div>
       <div className="card bg-base-200 shadow-xl items-center text-center flex-grow basis-60">
-        <div className="card-body">
+        <div className="card-body w-full">
           <h2 className="card-title self-center pb-4">Create a QuizBattle</h2>
-          <p className="pb-4">Here you can create your own QuizBattle-board.</p>
+          <p className="pb-4">Here you can create your own QuizBattle.</p>
           <div className="card-actions justify-end">
             <button className="btn btn-primary w-full" onClick={() => navigate("/create")}>Create Now</button>
           </div>
         </div>
       </div>
       <div className="card bg-base-200 shadow-xl items-center text-center flex-grow basis-60">
-        <div className="card-body">
+        <div className="card-body w-full">
           <h2 className="card-title self-center pb-4">Host your Game</h2>
           <p className="pb-4">Your board is ready and you want to play.</p>
           <div className="card-actions justify-end">
@@ -45,6 +46,9 @@ const Home = () => {
             </div>
           </div>
         </div>
+      }
+      {state.userID &&
+        <MyBoardsList />
       }
     </div>
   )

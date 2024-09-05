@@ -6,7 +6,7 @@ const EditQuestionAnswerModal = (props) => {
         question: "",
         picture: [],
         audio: [],
-        worth: undefined,
+        worth: 150,
         questionType: "",
         isLockedForCount: 0
     };

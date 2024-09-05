@@ -46,7 +46,6 @@ const NavBar = () => {
                             </div>
                         </div>
                         <ul tabIndex={0} className="menu dropdown-content bg-base-200 rounded-box z-10 w-52 p-2 shadow">
-                            <li><a className="btn btn-ghost">Profile</a></li>
                             <li className="text-red-600"><a className="btn btn-ghost" onClick={handleLogout}>Logout</a></li>
                         </ul>
                     </div>

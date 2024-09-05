@@ -4,12 +4,6 @@ import { QuizBattleContext } from "../contexts/CreateQuizBattleContext";
 const CreateQuizOptions = () => {
     const { state, dispatch } = useContext(QuizBattleContext);
 
-    useEffect(() => {
-        if (state.categories.length < state.options.quiz.categoryCount)
-        dispatch({ type: "SET_CATEGORY_COUNT", payload: 6 });
-    }, [])
-    
-
     const spansTimer = [];
     for (let i = 10; i <= 60; i += 5) {
         spansTimer.push(
@@ -28,6 +22,11 @@ const CreateQuizOptions = () => {
         );
     }
 
+    const handleNameChange = (event) => {
+        const newName = event.target.value;
+        dispatch({ type: "SET_NAME", payload: newName })
+    }
+
     const handleOptionsChange = (option, newValue) => {
         dispatch({ type: "UPDATE_QUIZ_OPTION", option, payload: newValue });
     }
@@ -42,7 +41,7 @@ const CreateQuizOptions = () => {
             <div className="card bg-base-200 shadow-xl items-center text-center basis-full">
                 <div className="card-body justify-center w-full">
                     <h2 className="card-title self-center pb-4">QuizBattle Name:</h2>
-                    <input type="text" value={state.name} className="input input-bordered self-center w-full max-w-xs" onChange={(event) => dispatch({ type: "SET_NAME", payload: event.target.value })} />
+                    <input type="text" value={state.name} className="input input-bordered self-center w-full max-w-xs" onInput={handleNameChange} />
                 </div>
             </div>
             <div className="card bg-base-200 shadow-xl items-center text-center flex-grow basis-80">

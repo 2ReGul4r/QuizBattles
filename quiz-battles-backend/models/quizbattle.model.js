@@ -62,8 +62,12 @@ const rarityChancesSchema = new Schema({
 const quizBattleSchema = new Schema({
     owner: {
         type: Schema.Types.ObjectId,
-        ref: 'User',
+        ref: "User",
         required: true
+    },
+    name: {
+        type: String,
+        default: "NewQuiz"
     },
     categories: [categorySchema],
     options: {
@@ -282,7 +286,7 @@ const quizBattleSchema = new Schema({
             }
         }
     }
-});
+}, { timestamps: true });
 
 const QuizBattle = mongoose.model("QuizBattle", quizBattleSchema);
 

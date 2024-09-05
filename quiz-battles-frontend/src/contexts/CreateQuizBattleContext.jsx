@@ -1,21 +1,21 @@
-import quizBattle from "../defaultQuizBattle";
-import toast from "react-hot-toast";
-import { saveBoard } from "../services/board.service.jsx";
-import React, { createContext, useReducer, useEffect } from "react";
-import Cookies from "js-cookie";
-import { jwtDecode } from "jwt-decode";
+import { createBoard, saveBoard, readBoard } from "../services/board.service.jsx";
+import React, { createContext, useReducer, useEffect, useRef } from "react";
 
 // Initial state basierend auf dem Schema
-const initialState = quizBattle;
+const initialState = {};
 
 // Reducer zum Verarbeiten von Actions
 function quizBattleReducer(state, action) {
   switch (action.type) {
+    case "SET_INITAL_STATE":
+      return {
+        ...action.payload
+      };
     case "SET_QUIZBATTLE_ID":
       return {
         _id: action.payload,
         ...state
-      }
+      };
     case "SET_OWNER":
       return { ...state, owner: action.payload };
     case "SET_NAME":
@@ -60,16 +60,15 @@ function quizBattleReducer(state, action) {
         ]
       };
     case "ADD_QUESTION":
-      const questionsUpdate = state.categories[action.categoryIndex]?.questions || [];
+      const categoryToUpdate = { ...state.categories[action.categoryIndex] };
+      const questionsUpdate = [...(categoryToUpdate.questions || [])];
       questionsUpdate[action.questionIndex] = action.payload;
-      const categoriesUpdate = state.categories;
-      categoriesUpdate[action.categoryIndex] = categoriesUpdate[action.categoryIndex] || {};
-      categoriesUpdate[action.categoryIndex].questions = questionsUpdate;
+      categoryToUpdate.questions = questionsUpdate;
+      const categoriesUpdate = [...state.categories];
+      categoriesUpdate[action.categoryIndex] = categoryToUpdate;
       return {
         ...state,
-        categories: [
-          ...categoriesUpdate
-        ]
+        categories: categoriesUpdate
       };
     case "UPDATE_QUIZ_OPTION":
       return { 
@@ -167,55 +166,37 @@ function quizBattleReducer(state, action) {
 const QuizBattleContext = createContext();
 
 // Provider Komponente
-const QuizBattleProvider = ({ children }) => {
+const QuizBattleProvider = ({ children, initialBoardID }) => {
   const [state, dispatch] = useReducer(quizBattleReducer, initialState);
+  const stateRef = useRef(state);
 
-  // Effekt, um State-Änderungen an den Server zu senden
   useEffect(() => {
-    const sendStateToServer = async () => {
-      try {
-        const token = Cookies.get("userjwt");
-        const decodedToken = jwtDecode(token);
-        const { userID, email, isAdmin, username } = decodedToken;
+    stateRef.current = state;
+  }, [state]);
 
-        console.log('getting here', userID);
-
-        // Dispatch und warte auf das Update
-        dispatch({ type: "SET_OWNER", payload: userID });
-
-        // Warte einen nächsten Frame-Zyklus ab, um sicherzustellen, dass der State aktualisiert wurde
-        await new Promise(resolve => setTimeout(resolve, 0));
-
-        console.log('here', state);
-
-        // Speichere den aktualisierten state auf dem Server
-        const response = await saveBoard(state);
-
-        console.log(response);
-
-        // Verarbeite die Serverantwort
-        if (response._id) {
-          dispatch({ type: "SET_QUIZBATTLE_ID", payload: response._id });
-        }
-
-        return response;
-      } catch (error) {
-        if (error?.response?.data?.error) {
-          toast.error(error.response.data.error);
-        } else {
-          toast.error("Something went wrong, please try again later.");
-        }
+  // Initialer useEffect, der beim ersten Laden ausgeführt wird
+  useEffect(() => {
+    if (!initialBoardID) {
+      const initialSetup = async () => {
+        const response = await createBoard();
+        dispatch({ type: "SET_INITAL_STATE", payload: response });
+        dispatch({ type: "SET_CATEGORY_COUNT", payload: 6 });
+      };
+      initialSetup();
+    } else {
+      const initBoard = async () => {
+        const response = await readBoard(initialBoardID);
+        dispatch({ type: "SET_INITAL_STATE", payload: response });
       }
-    };
+      initBoard();
+    }
 
-    // Direkt den Zustand auf den Server senden
-    sendStateToServer();
-
-    // Cleanup-Funktion (falls notwendig)
     return () => {
-      sendStateToServer();
-    };
-  }, []); // Hier solltest du dispatch und state als Abhängigkeiten hinzufügen
+      if (stateRef.current._id) {
+        saveBoard(stateRef.current);
+      }
+    }
+  }, []);
 
   return (
     <QuizBattleContext.Provider value={{ state, dispatch }}>

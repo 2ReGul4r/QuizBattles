@@ -40,7 +40,7 @@ body.modal-open {
 
 @media (min-width: 320px) {
   .mi\:flex {
-      display: block !important;
+    display: block !important;
   }
 }
 
