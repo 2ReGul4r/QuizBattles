@@ -1,4 +1,4 @@
-import { createBoard, saveBoard, readBoard } from "../services/board.service.jsx";
+import { createQuizBattle, saveQuizBattle, readQuizBattle } from "../services/quizbattles.service.jsx";
 import React, { createContext, useReducer, useEffect, useRef } from "react";
 
 // Initial state basierend auf dem Schema
@@ -166,7 +166,7 @@ function quizBattleReducer(state, action) {
 const QuizBattleContext = createContext();
 
 // Provider Komponente
-const QuizBattleProvider = ({ children, initialBoardID }) => {
+const QuizBattleProvider = ({ children, initialQuizBattleID }) => {
   const [state, dispatch] = useReducer(quizBattleReducer, initialState);
   const stateRef = useRef(state);
 
@@ -176,24 +176,24 @@ const QuizBattleProvider = ({ children, initialBoardID }) => {
 
   // Initialer useEffect, der beim ersten Laden ausgeführt wird
   useEffect(() => {
-    if (!initialBoardID) {
+    if (!initialQuizBattleID) {
       const initialSetup = async () => {
-        const response = await createBoard();
+        const response = await createQuizBattle();
         dispatch({ type: "SET_INITAL_STATE", payload: response });
         dispatch({ type: "SET_CATEGORY_COUNT", payload: 6 });
       };
       initialSetup();
     } else {
-      const initBoard = async () => {
-        const response = await readBoard(initialBoardID);
+      const initQuizBattle = async () => {
+        const response = await readQuizBattle(initialQuizBattleID);
         dispatch({ type: "SET_INITAL_STATE", payload: response });
       }
-      initBoard();
+      initQuizBattle();
     }
 
     return () => {
       if (stateRef.current._id) {
-        saveBoard(stateRef.current);
+        saveQuizBattle(stateRef.current);
       }
     }
   }, []);

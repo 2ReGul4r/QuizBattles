@@ -3,9 +3,9 @@ import React from "react";
 import { useUser } from "../contexts/UserContext";
 
 const LoggedOutRoutes = () => {
-    const { state } = useUser();
+    const { userState } = useUser();
 
-    if (state.loading) {
+    if (userState.loading) {
         return (
             <div className="flex flex-col items-center justify-center m-16">
                 <p className="text-2xl mb-4">Loading...</p>
@@ -15,7 +15,7 @@ const LoggedOutRoutes = () => {
     }
 
     return (
-        !state.userID ? (
+        !userState.userID ? (
                 <Outlet/>
             ) : (
                 <Navigate to="/"/>

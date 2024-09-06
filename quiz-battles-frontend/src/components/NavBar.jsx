@@ -5,7 +5,7 @@ import { faUsersBetweenLines } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 
 const NavBar = () => {
-    const { state } = useUser();
+    const { userState } = useUser();
     const { handleLogout } = useUser();
     const navigate = useNavigate();
 
@@ -38,11 +38,11 @@ const NavBar = () => {
                 <a className="text-xl font-semibold cursor-pointer" onClick={handleHomeNavigate}>QuizBattles</a>
             </div>
             <div className="navbar-end">
-                {state.userID ? (
+                {userState.userID ? (
                     <div className="dropdown dropdown-end dropdown-hover">
                         <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar placeholder">
                             <div className="bg-neutral text-neutral-content w-12 rounded-full">
-                                <span>{state.username.slice(0, 2)}</span>
+                                <span>{userState.username.slice(0, 2)}</span>
                             </div>
                         </div>
                         <ul tabIndex={0} className="menu dropdown-content bg-base-200 rounded-box z-10 w-52 p-2 shadow">

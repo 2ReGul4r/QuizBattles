@@ -2,11 +2,6 @@ import jwt from "jsonwebtoken";
 import QuizBattle from "../models/quizbattle.model.js";
 import defaultQuizBattle from "../utils/defaultQuizBattle.js";
 
-async function createOrUpdateQuiz(query, updateData) {
-    const result = await QuizBattle.findOneAndUpdate(query, updateData);
-    return result;
-}
-
 function getUserData(cookie) {
     if (!cookie) {
         return {};
@@ -15,7 +10,7 @@ function getUserData(cookie) {
     return decodedToken;
 }
 
-export const createBoard = async (req, res) => {
+export const createQuizBattle = async (req, res) => {
     try {
         const {userID, email, username, isAdmin} = getUserData(req.cookies.userjwt);
         if (!userID) {
@@ -29,12 +24,12 @@ export const createBoard = async (req, res) => {
         await newQuizBattle.save()
         res.status(201).json(newQuizBattle)
     } catch (error) {
-        console.log("Error in createBoard controller", error.message);
+        console.log("Error in createQuizBattle controller", error.message);
         res.status(500).json({error: "Internal Server Error"});
     }
 } 
 
-export const saveBoard = async (req, res) => {
+export const saveQuizBattle = async (req, res) => {
     try {
         const state = req.body;
         const {userID, email, username, isAdmin} = getUserData(req.cookies.userjwt);
@@ -42,19 +37,19 @@ export const saveBoard = async (req, res) => {
             return res.status(403).json({error: "Not logged in."});
         }
         if (state.owner !== userID) {
-            return res.status(400).json({error: "This is not your board."});
+            return res.status(400).json({error: "This is not your QuizBattle."});
         }
         const result = await QuizBattle.findOneAndUpdate({ _id: state._id, owner: userID }, state);
         if (result) {
             res.status(201).json(result)
         }
     } catch (error) {
-        console.log("Error in saveBoard controller", error.message);
+        console.log("Error in saveQuizBattle controller", error.message);
         res.status(500).json({error: "Internal Server Error"});
     }
 }
 
-export const getBoards = async (req, res) => {
+export const getQuizBattles = async (req, res) => {
     try {
         const { userID, email, username, isAdmin } = getUserData(req.cookies.userjwt);
         // Finde alle QuizBattle-Einträge, die diesem User gehören, und wähle nur die relevanten Felder aus
@@ -64,49 +59,49 @@ export const getBoards = async (req, res) => {
         if (result) {
             res.status(200).json(result); // 200 für eine erfolgreiche Anfrage
         } else {
-            console.log("Error in getBoards controller: No results found.");
-            res.status(404).json({ error: "No boards found for this user." });
+            console.log("Error in getQuizBattles controller: No results found.");
+            res.status(404).json({ error: "No QuizBattles found for this user." });
         }
     } catch (error) {
-        console.log("Error in getBoards controller", error.message);
+        console.log("Error in getQuizBattles controller", error.message);
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
 
-export const readBoard = async (req, res) => {
+export const readQuizBattle = async (req, res) => {
     try {
         const { userID, email, username, isAdmin } = getUserData(req.cookies.userjwt);
         // Finde alle QuizBattle-Einträge, die diesem User gehören, und wähle nur die relevanten Felder aus
-        const boardID = req.query.boardID;
-        const result = await QuizBattle.findOne({ _id: boardID, owner: userID })
+        const quizbattleID = req.query.quizbattleID;
+        const result = await QuizBattle.findOne({ _id: quizbattleID, owner: userID })
 
         if (result) {
             res.status(200).json(result); // 200 für eine erfolgreiche Anfrage
         } else {
-            console.log("Error in readBoard controller: No results found.");
+            console.log("Error in readQuizBattle controller: No results found.");
             res.status(404).json({ error: "No QuizBattles found for this user." });
         }
     } catch (error) {
-        console.log("Error in readBoard controller", error.message);
+        console.log("Error in readQuizBattle controller", error.message);
         res.status(500).json({ error: "Internal Server Error" });
     }
 }
 
-export const deleteBoard = async (req, res) => {
+export const deleteQuizBattle = async (req, res) => {
     try {
         const { userID, email, username, isAdmin } = getUserData(req.cookies.userjwt);
         // Finde alle QuizBattle-Einträge, die diesem User gehören, und wähle nur die relevanten Felder aus
-        const { boardID } = req.body;
-        const result = await QuizBattle.deleteOne({ _id: boardID, owner: userID });
+        const { quizbattleID } = req.body;
+        const result = await QuizBattle.deleteOne({ _id: quizbattleID, owner: userID });
 
         if (result) {
             res.status(200).json(result); // 200 für eine erfolgreiche Anfrage
         } else {
-            console.log("Error in deleteBoard controller: No results found.");
+            console.log("Error in deleteQuizBattle controller: No results found.");
             res.status(404).json({ error: "QuizBattles not found for this user." });
         }
     } catch (error) {
-        console.log("Error in deleteBoard controller", error.message);
+        console.log("Error in deleteQuizBattle controller", error.message);
         res.status(500).json({ error: "Internal Server Error" });
     }
     

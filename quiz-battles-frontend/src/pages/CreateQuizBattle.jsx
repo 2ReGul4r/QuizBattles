@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
 
-import CreateQuizPagesWrapper from "../../components/CreateQuizPagesWrapper";
-import { QuizBattleProvider } from "../../contexts/CreateQuizBattleContext";
+import CreateQuizPagesWrapper from "../components/CreateQuizPagesWrapper";
+import { QuizBattleProvider } from "../contexts/CreateQuizBattleContext";
 
 const CreateQuizBattle = () => {
   const minPages = 1;
   const maxPages = 3;
   const [page, setPage] = useState(minPages);
   const location = useLocation();
-  const { initialBoardID } = location.state || {};
+  const { initialQuizBattleID } = location.state || {};
 
   const handlePageChange = (newPage) => {
     if (newPage < minPages) {
@@ -34,7 +34,7 @@ const CreateQuizBattle = () => {
   };
 
   return (
-    <QuizBattleProvider initialBoardID={initialBoardID}>
+    <QuizBattleProvider initialQuizBattleID={initialQuizBattleID}>
       <div className="flex flex-col mb-32">
         <ul id="pagination_list" className="steps mb-8 steps-horizontal">
           <li className="step step-primary cursor-pointer" onClick={() => handlePageChange(1)}>Quiz Settings</li>

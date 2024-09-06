@@ -1,32 +1,23 @@
 import { createContext, useState, useEffect, useContext } from "react";
 import { useUser } from "./UserContext";
 import io from "socket.io-client";
+import Cookies from "js-cookie";
 
 const SocketContext = createContext();
 
-export const useSocketContext = () => {
-	return useContext(SocketContext);
-};
-
 export const SocketContextProvider = ({ children }) => {
 	const [socket, setSocket] = useState(null);
-	const [onlineUsers, setOnlineUsers] = useState([]);
-	const { state } = useUser();
+	const [playerGameState, setplayerGameState] = useState({});
+	const { userState } = useUser();
 
 	useEffect(() => {
-		if (authUser) {
-			const socket = io("", {
-				query: {
-					userId: authUser._id,
-				},
+		if (userState.userID) {
+			const token = Cookies.get("userjwt");
+			const socket = io("http://localhost:5000/", {
+				auth: {token: token},
 			});
 
 			setSocket(socket);
-
-			// socket.on() is used to listen to the events. can be used both on client and server side
-			socket.on("getOnlineUsers", (users) => {
-				setOnlineUsers(users);
-			});
 
 			return () => socket.close();
 		} else {
@@ -35,7 +26,13 @@ export const SocketContextProvider = ({ children }) => {
 				setSocket(null);
 			}
 		}
-	}, [authUser]);
+	}, [userState]);
 
-	return <SocketContext.Provider value={{ socket, onlineUsers }}>{children}</SocketContext.Provider>;
+	return (
+		<SocketContext.Provider value={{ socket }}>
+			{children}
+		</SocketContext.Provider>
+	);
 };
+
+export const useSocketContext = () => useContext(SocketContext);

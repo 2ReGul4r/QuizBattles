@@ -1,19 +1,32 @@
-import { useUser } from "../../contexts/UserContext";
+import { useUser } from "../contexts/UserContext";
 import { useNavigate } from "react-router-dom";
-import MyBoardsList from "../../components/MyBoardsList";
+import { useState } from "react";
+import MyQuizBattlesList from "../components/MyQuizBattlesList";
 
 const Home = () => {
-  const { state } = useUser();
+  const { userState } = useUser();
   const navigate = useNavigate();
+  const [joinRoomID, setJoinRoomID] = useState("")
+
+  const handleJoinGame = () => {
+
+  }
+
+  const handleJoinRoomChange = (event) => {
+    const value = event.target.value;
+    const upperValue = value.toUpperCase()
+    const cleanValue = upperValue.replace(/[^A-Z0-9]/g, '');
+    setJoinRoomID(cleanValue)
+  }
 
   return (
     <div className="flex items-stretch flex-wrap gap-8 mx-6 justify-center flex-row">
       <div className="card bg-base-200 shadow-xl items-center text-center flex-grow basis-60">
         <div className="card-body w-full">
           <h2 className="card-title self-center pb-4">Join a Game</h2>
-            <input type="text" placeholder="Gamecode" className="input input-bordered w-full mb-4"></input>
+            <input type="text" placeholder="Gamecode" value={joinRoomID} onChange={handleJoinRoomChange} className="input input-bordered w-full mb-4"></input>
           <div className="card-actions justify-end">
-            <button className="btn btn-primary w-full">Join Now</button>
+            <button className="btn btn-primary w-full" onClick={handleJoinGame}>Join Now</button>
           </div>
         </div>
       </div>
@@ -29,13 +42,13 @@ const Home = () => {
       <div className="card bg-base-200 shadow-xl items-center text-center flex-grow basis-60">
         <div className="card-body w-full">
           <h2 className="card-title self-center pb-4">Host your Game</h2>
-          <p className="pb-4">Your board is ready and you want to play.</p>
+          <p className="pb-4">Your QuizBattle is ready and you want to play.</p>
           <div className="card-actions justify-end">
-            <button className="btn btn-primary w-full" onClick={() => navigate("/play")}>Play Now</button>
+            <button className="btn btn-primary w-full" onClick={() => navigate("/host")}>Play Now</button>
           </div>
         </div>
       </div>
-      {!state.userID && 
+      {!userState.userID && 
         <div className="card bg-base-200 shadow-xl items-center text-center basis-full">
           <div className="card-body">
             <h2 className="card-title self-center pb-4">Please login</h2>
@@ -47,8 +60,8 @@ const Home = () => {
           </div>
         </div>
       }
-      {state.userID &&
-        <MyBoardsList />
+      {userState.userID &&
+        <MyQuizBattlesList />
       }
     </div>
   )

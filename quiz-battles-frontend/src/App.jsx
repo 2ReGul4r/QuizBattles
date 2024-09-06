@@ -9,14 +9,16 @@ import LoggedInRoutes from "./components/LoggedInRoutes.jsx";
 import AdminRoutes from "./components/AdminRoutes.jsx";
 import NavBar from "./components/NavBar.jsx"
 
-import Home from "./pages/home/Home";
-import Game from "./pages/game/Game";
-import CreateItem from "./pages/createitem/CreateItem";
-import CreateQuizBattle from "./pages/createquizbattle/CreateQuizBattle.jsx";
-import Login from "./pages/login/Login";
-import SignUp from "./pages/signup/SignUp";
+import Home from "./pages/Home.jsx";
+import Game from "./pages/Game";
+import CreateItem from "./pages/CreateItem";
+import CreateQuizBattle from "./pages/CreateQuizBattle.jsx";
+import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
+import Host from "./pages/Host.jsx";
 
 import "./App.css"
+import { SocketContextProvider } from "./contexts/SocketContext.jsx";
 
 function App() {
   const toastOptions = {
@@ -26,15 +28,17 @@ function App() {
   return (
     <Router>
       <UserProvider>
-        <Toaster position="bottom-right" toastOptions={toastOptions} />
-        <NavBar/>
+        <SocketContextProvider>
+          <Toaster position="bottom-right" toastOptions={toastOptions} />
+          <NavBar/>
           <div className="main-content">
             <div className="m-8">
               <Routes>
                 <Route path="/" element={<Home/>}/>
-                <Route path="/game" element={<Game/>}/>
                 <Route element={<LoggedInRoutes/>}>
                   <Route path="/create" element={<CreateQuizBattle/>}/>
+                  <Route path="/game" element={<Game/>}/>
+                  <Route path="/host" element={<Host/>}/>
                 </Route>
                 <Route element={<LoggedOutRoutes/>}>
                   <Route path="/login" element={<Login/>}/>
@@ -46,6 +50,7 @@ function App() {
               </Routes>
             </div>
           </div>
+        </SocketContextProvider>
       </UserProvider>
     </Router>
   )

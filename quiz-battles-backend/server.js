@@ -4,9 +4,9 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import connectDB from "./db/connect.js";
 import authRoutes from "./routes/auth.routes.js";
-import boardRoutes from "./routes/board.routes.js";
+import quizBattleRoutes from "./routes/quizbattle.routes.js";
+import { app, server } from "./socket/socket.js";
 
-const app = express();
 const PORT = process.env.PORT || 5000;
 
 dotenv.config();
@@ -20,9 +20,9 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
-app.use("/api/board", boardRoutes);
+app.use("/api/quizbattle", quizBattleRoutes);
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     connectDB();
     console.log(`Server running ${PORT}`);
 });

@@ -20,11 +20,11 @@ const actionTypes = {
   LOGOUT: "LOGOUT",
 };
 
-const reducer = (state, action) => {
+const reducer = (userState, action) => {
   switch (action.type) {
     case actionTypes.SET_USER:
       return {
-        ...state,
+        ...userState,
         userID: action.payload.userID,
         email: action.payload.email,
         username: action.payload.username,
@@ -33,17 +33,17 @@ const reducer = (state, action) => {
       };
     case actionTypes.LOADING_START:
       return {
-        ...state,
+        ...userState,
         loading: true
       };
     case actionTypes.LOADING_DONE:
       return {
-        ...state,
+        ...userState,
         loading: false
       };
     case actionTypes.LOGOUT:
       return {
-        ...state,
+        ...userState,
         userID: null,
         email: null,
         username: null,
@@ -51,14 +51,14 @@ const reducer = (state, action) => {
         loading: false
       };
     default:
-      return state;
+      return userState;
   }
 };
 
 const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [userState, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
     const token = Cookies.get("userjwt");
@@ -122,7 +122,7 @@ export const UserProvider = ({ children }) => {
   };
 
   return (
-    <UserContext.Provider value={{ state, handleLogin, handleSignup, handleLogout }}>
+    <UserContext.Provider value={{ userState, handleLogin, handleSignup, handleLogout }}>
       {children}
     </UserContext.Provider>
   );
@@ -146,12 +146,12 @@ function handleInputErrorsSignUp({ email, username, password, confirmPassword })
   if (!validator.isEmail(email)) {
     toast.error("Email is not valid");
     return false;
-}
+  }
 
-if (validator.isEmail(username)) {
-  toast.error("Username cannot be an email");
-    return false;
-}
+  if (validator.isEmail(username)) {
+    toast.error("Username cannot be an email");
+      return false;
+  }
 
   if (username.length < 3) {
 		toast.error("Username must be at least 3 characters");
@@ -169,6 +169,6 @@ if (validator.isEmail(username)) {
 	}
 
 	return true;
-}
+};
 
 export const useUser = () => useContext(UserContext);

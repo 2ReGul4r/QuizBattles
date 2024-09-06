@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useUser } from "../../contexts/UserContext";
+import { useUser } from "../contexts/UserContext";
 import { useNavigate } from "react-router-dom";
 
 const SignUp = () => {
@@ -10,7 +10,7 @@ const SignUp = () => {
 		confirmPassword: "",
 	});
 
-  const { state, handleSignup } = useUser();
+  const { handleSignup } = useUser();
 
   const navigate = useNavigate();
 
