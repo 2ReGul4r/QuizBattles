@@ -27,9 +27,10 @@ const Host = () => {
     };
 
     const handleHost = (id) => {
-        socket.emit("hostQuizBattle", { quizbattleID: id}, (response) => {
+        socket.emit("hostQuizBattle", { quizbattleID: id }, (response) => {
+            console.log(response)
             if(response) {
-                
+                navigate("/game", { state: { lobbyCode: response.lobbyID, roomState: response.roomState }})
             }
         });
     };

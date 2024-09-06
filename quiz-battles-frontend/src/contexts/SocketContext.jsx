@@ -2,13 +2,16 @@ import { createContext, useState, useEffect, useContext } from "react";
 import { useUser } from "./UserContext";
 import io from "socket.io-client";
 import Cookies from "js-cookie";
+import handleSocketErrors from "../utils/SocketErrorEventHandler";
+import { useNavigate } from "react-router-dom";
 
 const SocketContext = createContext();
 
 export const SocketContextProvider = ({ children }) => {
 	const [socket, setSocket] = useState(null);
-	const [playerGameState, setplayerGameState] = useState({});
+	const [isConnected, setIsConnected] = useState(false);
 	const { userState } = useUser();
+	const navigate = useNavigate();
 
 	useEffect(() => {
 		if (userState.userID) {
@@ -17,19 +20,27 @@ export const SocketContextProvider = ({ children }) => {
 				auth: {token: token},
 			});
 
+			socket.on("redirectToRoom", (roomID) => {
+				console.log(roomID);
+				navigate("/game", { state: { lobbyCode: roomID }})
+			})
+
+			handleSocketErrors(socket);
 			setSocket(socket);
+			setIsConnected(true);
 
 			return () => socket.close();
 		} else {
 			if (socket) {
 				socket.close();
 				setSocket(null);
+				setIsConnected(false);
 			}
 		}
 	}, [userState]);
 
 	return (
-		<SocketContext.Provider value={{ socket }}>
+		<SocketContext.Provider value={{ socket, isConnected }}>
 			{children}
 		</SocketContext.Provider>
 	);

@@ -2,14 +2,24 @@ import { useUser } from "../contexts/UserContext";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import MyQuizBattlesList from "../components/MyQuizBattlesList";
+import { useSocketContext } from "../contexts/SocketContext";
+import toast from "react-hot-toast";
 
 const Home = () => {
   const { userState } = useUser();
   const navigate = useNavigate();
   const [joinRoomID, setJoinRoomID] = useState("")
+  const { socket } = useSocketContext();
 
   const handleJoinGame = () => {
-
+    console.log(joinRoomID)
+    socket.emit("joinQuizBattle", joinRoomID, (joinedRoomSuccessfully, lobbyCode) => {
+      if(joinedRoomSuccessfully) {
+        navigate("/game", { state: { lobbyCode: lobbyCode }})
+      } else {
+        toast.error("Could not join room.")
+      }
+    })
   }
 
   const handleJoinRoomChange = (event) => {
