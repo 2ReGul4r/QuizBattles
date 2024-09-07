@@ -4,9 +4,9 @@ import Game from "./Game";
 
 const GameWrapper = () => {
     const location = useLocation();
-    const { lobbyCode = "", roomState = {} } = location.state || {};
+    const { roomID = "", roomState = {} } = location.state || {};
     return (
-        <GameContextProvider lobbyCode={lobbyCode} roomState={roomState}>
+        <GameContextProvider roomID={roomID} roomState={roomState}>
             <Game />
         </GameContextProvider>
     )
