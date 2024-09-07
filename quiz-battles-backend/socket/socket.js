@@ -13,8 +13,8 @@ const io = new Server(server, {
     }
 });
 
-io.on("connection", (socket) => {
-    handleQuizBattleEvents(socket);
+io.on("connection", async (socket) => {
+    await handleQuizBattleEvents(socket);
 })
 
 io.of("/").adapter.on("create-room", (room) => {

@@ -28,7 +28,6 @@ const Host = () => {
 
     const handleHost = (id) => {
         socket.emit("hostQuizBattle", { quizbattleID: id }, (response) => {
-            console.log(response)
             if(response) {
                 navigate("/game", { state: { lobbyCode: response.lobbyID, roomState: response.roomState }})
             }
@@ -60,15 +59,15 @@ const Host = () => {
                     <h2 className="card-title self-center pb-4">My QuizBattles</h2>
                     {quizbattles.map(quizbattle => (
                     <div key={quizbattle._id} className="card w-full bg-base-100 shadow-xl [&:not(:last-child)]:mb-8">
-                        <div className="card-body flex-col sm:flex-row items-center justify-between overflow-x-auto">
-                        <div className="tooltip contents before:max-w-full" data-tip={quizbattle.name}>
-                            <h2 className="card-title overflow-hidden w-1/4">{quizbattle.name}</h2>
-                        </div>
-                        <p>Created at: {new Date(quizbattle.createdAt).toLocaleDateString("de-DE")} {new Date(quizbattle.createdAt).toLocaleTimeString("de-DE")}</p>
-                        <p>Last Updates at: {new Date(quizbattle.updatedAt).toLocaleDateString("de-DE")} {new Date(quizbattle.createdAt).toLocaleTimeString("de-DE")}</p>
-                        <div className="card-actions justify-end">
-                            <button className="btn btn-primary flex-grow w-full" onClick={() => handleHost(quizbattle._id)}>Play</button>
-                        </div>
+                        <div className="card-body flex-col md:flex-row items-center justify-between overflow-x-auto">
+                            <div className="tooltip contents before:max-w-full" data-tip={quizbattle.name}>
+                                <h2 className="card-title overflow-hidden w-full md:w-3/5 justify-center md:justify-start">{quizbattle.name}</h2>
+                            </div>
+                            <p>Created at: {new Date(quizbattle.createdAt).toLocaleDateString("de-DE")} {new Date(quizbattle.createdAt).toLocaleTimeString("de-DE")}</p>
+                            <p>Last Updates at: {new Date(quizbattle.updatedAt).toLocaleDateString("de-DE")} {new Date(quizbattle.createdAt).toLocaleTimeString("de-DE")}</p>
+                            <div className="card-actions justify-end">
+                                <button className="btn btn-primary flex-grow w-full" onClick={() => handleHost(quizbattle._id)}>Play</button>
+                            </div>
                         </div>
                     </div>
                     ))}

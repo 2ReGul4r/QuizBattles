@@ -9,6 +9,10 @@ const answerSchema = new Schema({
 
 const questionSchema = new Schema({
     question: String,
+    isAnswered: {
+        type: Boolean,
+        default: false
+    },
     answer: answerSchema,
     picture: [Buffer],
     audio: [Buffer],

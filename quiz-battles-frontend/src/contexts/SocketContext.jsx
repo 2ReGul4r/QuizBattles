@@ -20,9 +20,14 @@ export const SocketContextProvider = ({ children }) => {
 				auth: {token: token},
 			});
 
-			socket.on("redirectToRoom", (roomID) => {
-				console.log(roomID);
-				navigate("/game", { state: { lobbyCode: roomID }})
+			socket.on("redirectToRoom", async (roomID, callback) => {
+				await navigate("/game", { state: { lobbyCode: roomID }});
+				socket.emit("updateRoomForAll");
+				callback();
+			})
+
+			socket.on("redirectToHome", () => {
+				navigate("/");
 			})
 
 			handleSocketErrors(socket);

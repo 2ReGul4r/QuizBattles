@@ -16,16 +16,23 @@ export const GameContextProvider = ({ children, lobbyCode, roomState, playersInR
     useEffect(() => {
         if (isConnected) {
             socket.on("playersRoomUpdate", (playersOfRoom) => {
-                console.log("setstate")
                 setRoomPlayers(playersOfRoom);
+                socket.emit("updateRoomForAll");
             })
 
-            socket.on("updateGameState", (gameState) => {
-
+            socket.on("gameStateUpdate", (gameState) => {
+                setGameState(gameState);
+                socket.emit("updateRoomForAll");
             })
         
             socket.on("setHostState", (hostState) => {
                 setHostState(hostState);
+                socket.emit("updateRoomForAll");
+            })
+
+            socket.emit("getGameUpdate", (gameState, playersOfRoom) => {
+                setGameState(gameState);
+                setRoomPlayers(playersOfRoom);
             })
         }
     }, [isConnected])
@@ -33,17 +40,20 @@ export const GameContextProvider = ({ children, lobbyCode, roomState, playersInR
     useEffect(() => {
         if (lobbyCode) {
             setActiveRoom(lobbyCode);
+            socket.emit("updateRoomForAll");
         }
         if (roomState) {
             setHostState(roomState);
+            socket.emit("updateRoomForAll");
         }
         if (playersInRoom) {
             setRoomPlayers(playersInRoom);
+            socket.emit("updateRoomForAll");
         }
     }, [lobbyCode, roomState, playersInRoom])
 
 	return (
-		<GameContext.Provider value={{ roomPlayers, activeRoom, gameState }}>
+		<GameContext.Provider value={{ roomPlayers, activeRoom, gameState, hostState }}>
 			{children}
 		</GameContext.Provider>
 	);

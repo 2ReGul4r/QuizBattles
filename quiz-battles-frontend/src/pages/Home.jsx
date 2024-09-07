@@ -12,10 +12,9 @@ const Home = () => {
   const { socket } = useSocketContext();
 
   const handleJoinGame = () => {
-    console.log(joinRoomID)
-    socket.emit("joinQuizBattle", joinRoomID, (joinedRoomSuccessfully, lobbyCode) => {
+    socket.emit("joinQuizBattle", joinRoomID, async (joinedRoomSuccessfully, lobbyCode) => {
       if(joinedRoomSuccessfully) {
-        navigate("/game", { state: { lobbyCode: lobbyCode }})
+        await navigate("/game", { state: { lobbyCode: lobbyCode }})
       } else {
         toast.error("Could not join room.")
       }
