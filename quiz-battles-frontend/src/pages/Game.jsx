@@ -53,7 +53,7 @@ const Game = () => {
         </div>
         <div className="card-actions flex-row">
           <div className="flex w-full justify-end flex-wrap flex-grow">
-            <button className="btn btn-outline btn-error" onClick={handleLeave}>Leave game</button>
+            <button className="btn btn-outline btn-error" onClick={handleLeave}>{(Object.keys(hostState).length > 0) ? "Delete game" : "Leave game"}</button>
           </div>
         </div>
       </div>

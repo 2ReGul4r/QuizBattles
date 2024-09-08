@@ -15,7 +15,7 @@ const Home = () => {
     socket.emit("joinQuizBattle", joinRoomID, async (joinedRoomSuccessfully, roomID) => {
       if(joinedRoomSuccessfully) {
         await navigate("/game", { state: { roomID }});
-        socket.emit("navigationComplete");
+        socket.emit("joinNavigationComplete");
       } else {
         toast.error("Could not join room.")
       }

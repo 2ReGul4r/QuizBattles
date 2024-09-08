@@ -27,7 +27,6 @@ export const SocketContextProvider = ({ children }) => {
 
 			socket.on("redirectToHome", async () => {
 				await navigate("/");
-				socket.emit("navigationComplete");
 			})
 
 			handleSocketErrors(socket);

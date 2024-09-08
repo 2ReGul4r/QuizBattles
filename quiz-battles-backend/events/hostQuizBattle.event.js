@@ -7,7 +7,7 @@ export default async (socket, quizbattleID, callback) => {
     socket.join(roomID);
     callback(roomID, newRoomState);
 
-    socket.on("navigationComplete", async () => {
+    socket.on("hostNavigationComplete", async () => {
         const currentRoomState = getRoomState(roomID);
         if (!currentRoomState) {
             //TODO: delete room here

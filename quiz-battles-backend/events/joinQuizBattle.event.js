@@ -13,7 +13,7 @@ export default async (socket, roomID, callback) => {
     joinToRoom(socket, socket.user.userID, roomID, false);
     await callback(true, roomID);
 
-    socket.on("navigationComplete", async () => {
+    socket.on("joinNavigationComplete", async () => {
         const roomState = getRoomState(roomID)
         const playersOfRoom = roomState.players;
         const gameState = await mapRoomStateToGameState(roomState)
