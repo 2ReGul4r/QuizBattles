@@ -48,6 +48,10 @@ body.modal-open {
   width: clamp(16rem, 100%, 32rem);
 }
 
+.marked-question-border {
+  filter: drop-shadow(0 0 0.25rem #7480ff);
+}
+
 fieldset[disabled] label {
   cursor: not-allowed;
   --tw-border-opacity: 1;

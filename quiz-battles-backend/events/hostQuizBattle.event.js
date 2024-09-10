@@ -7,13 +7,13 @@ export default async (socket, quizbattleID, callback) => {
     socket.join(roomID);
     callback(roomID, newRoomState);
 
-    socket.on("hostNavigationComplete", async () => {
+    socket.on("hostNavigationComplete", () => {
         const currentRoomState = getRoomState(roomID);
         if (!currentRoomState) {
             //TODO: delete room here
             return 
         }
-        const gameState = await mapRoomStateToGameState(currentRoomState);
+        const gameState = mapRoomStateToGameState(currentRoomState);
         io.to(roomID).emit("gameStateUpdate", gameState);
         socket.emit("setHostState", currentRoomState);
     })

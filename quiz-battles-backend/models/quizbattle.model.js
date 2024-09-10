@@ -3,8 +3,8 @@ const Schema = mongoose.Schema;
 
 const answerSchema = new Schema({
     text: String,
-    picture: [Buffer],
-    audio: [Buffer],
+    picture: [String],
+    audio: [String]
 });
 
 const questionSchema = new Schema({
@@ -13,9 +13,14 @@ const questionSchema = new Schema({
         type: Boolean,
         default: false
     },
+    answeredFrom: {
+        type: [Schema.Types.ObjectId],
+        ref: "User",
+        default: []
+    },
     answer: answerSchema,
-    picture: [Buffer],
-    audio: [Buffer],
+    picture: [String],
+    audio: [String],
     worth: {
         type: Number,
         default: 250

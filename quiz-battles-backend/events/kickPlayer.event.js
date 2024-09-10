@@ -1,7 +1,7 @@
 import { isActiveQuizBattleHost, isUserInThisRoom, isHostOfRoom, getUserSocket, removePlayerFromRoom, getRoomState, mapRoomStateToGameState } from "../utils/quizbattleUtils.js";
 import { io } from "../socket/socket.js";
 
-export default async (socket, userID, roomID, callback) => {
+export default (socket, userID, roomID, callback) => {
     if (!isActiveQuizBattleHost) {
         socket.emit("sendError", { error: "You do not host a game."});
         return
@@ -22,9 +22,7 @@ export default async (socket, userID, roomID, callback) => {
     removePlayerFromRoom(userSocket, userID, roomID, true, "Your were kicked from this game");
 
     const roomState = getRoomState(roomID);
-    const playersOfRoom = roomState.players;
-    const gameState = await mapRoomStateToGameState(roomState)
+    const gameState = mapRoomStateToGameState(roomState)
     io.to(roomID).emit("gameStateUpdate", gameState);
-    io.to(roomID).emit("playersRoomUpdate", playersOfRoom);
     callback(true);
 }

@@ -1,7 +1,23 @@
 import QuizBattle from "../models/quizbattle.model.js";
 import jwt from "jsonwebtoken";
 import { io } from "../socket/socket.js";
-import { quizBattleState, userIDRoomIDMap, hostIDRoomIDMap, maxPlayers } from "../events/wrapper.events.js";
+
+export const quizBattleState = {};
+
+const userIDRoomIDMap = new Map();
+const hostIDRoomIDMap = new Map();
+
+const maxPlayers = 12;
+
+export function cleanUpRoom(roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return
+    Object.keys(roomState.players).forEach((userID) => {
+        if (userIDRoomIDMap.has(userID)) userIDRoomIDMap.delete(userID);
+        if (hostIDRoomIDMap.has(userID)) hostIDRoomIDMap.delete(userID);
+    });
+    delete quizBattleState[roomID]
+}
 
 export async function createInitialRoomState(socket, quizbattleID) {
     const quizbattle = await getQuizBattleByID(quizbattleID);
@@ -11,8 +27,12 @@ export async function createInitialRoomState(socket, quizbattleID) {
             ...socket.user
         },
         players: {},
-        quizbattle: quizbattle,
-        activePlayer: {index: 0, userID: undefined}
+        quizbattle: createDeepCopy(quizbattle),
+        activePlayer: {index: 0, userID: undefined},
+        hasActiveQuestion: false,
+        skippingPlayers: [],
+        buzzeredPlayers: [],
+        score: {},
     }
     return roomState;
 };
@@ -20,7 +40,6 @@ export async function createInitialRoomState(socket, quizbattleID) {
 export async function createNewQuizBattleRoom(socket, quizbattleID) {
     const roomID = generateRandomString();
     const newRoomState = await createInitialRoomState(socket, quizbattleID);
-    quizBattleState[roomID] = newRoomState;
     hostIDRoomIDMap.set(socket.user.userID, roomID);
     return {roomID, newRoomState};
 };
@@ -33,12 +52,7 @@ export function deleteRoom(roomID) {
         socket.emit("sendError", { error: "This room was deleted by the host." });
         socket.emit("redirectToHome");
     });
-    const roomState = getRoomState(roomID);
-    Object.keys(roomState.players).forEach((userID) => {
-        if (userIDRoomIDMap.has(userID)) userIDRoomIDMap.delete(userID);
-        if (hostIDRoomIDMap.has(userID)) hostIDRoomIDMap.delete(userID);
-    });
-    delete quizBattleState[roomID]
+    cleanUpRoom(roomID);
 }
 
 export function doesRoomExist(roomID) {
@@ -80,6 +94,18 @@ export function getUserSocket(userID, roomID) {
     return io.sockets.sockets.get(userSocketID) || false;
 };
 
+export function hasRoomActiveQuestion(roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return false
+    return !!roomState.hasActiveQuestion
+}
+
+export function isActivePlayer(userID, roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return false
+    return !!(roomState.activePlayer?.userID === userID)
+}
+
 export function isActiveQuizBattleHost(userID) {
     return hostIDRoomIDMap.has(userID);
 };
@@ -113,6 +139,7 @@ export function isUserInThisRoom(userID, roomID) {
 
 export function joinToRoom(socket, userID, roomID, isHost) {
     const roomState = getRoomState(roomID);
+    const startMoney = roomState.quizbattle.options.money.starting;
     socket.join(roomID);
     if (isHost) {
         roomState.host.socket = socket.id;
@@ -123,21 +150,29 @@ export function joinToRoom(socket, userID, roomID, isHost) {
             roomState.players[userID].socket = socket.id; 
         } else {
             roomState.players[userID] = { socket: socket.id, ...socket.user };
+            roomState.score[userID] = {score: 0, money: startMoney};
         }
     }
 };
 
 export function mapRoomStateToGameState(roomState) {
     const categories = mapCategoriesForGameState(roomState.quizbattle);
-    const activePlayerUserID = roomState.activePlayer.userID || Object.keys(roomState.players)[roomState.activePlayer.index] || undefined;
     return {
-        host: { ...roomState.host },
-        players: roomState.players,
-        activePlayer: {index: roomState.activePlayer.index, userID: activePlayerUserID},
+        host: {
+            userID: roomState.host.userID,
+            username: roomState.host.username
+        },
+        players: createDeepCopy(roomState.players),
+        activePlayer: createDeepCopy(roomState.activePlayer),
         gameState: {
             name: roomState.quizbattle.name,
-            categories: categories,
-        }
+            categories: [...categories],
+            options: createDeepCopy(roomState.quizbattle.options)
+        },
+        hasActiveQuestion: roomState.hasActiveQuestion,
+        skippingPlayers: createDeepCopy(roomState.skippingPlayers),
+        buzzeredPlayers: createDeepCopy(roomState.buzzeredPlayers),
+        score: createDeepCopy(roomState.score),
     }
 };
 
@@ -150,16 +185,47 @@ export function removePlayerFromRoom(socket, userID, roomID, sendError, errorMes
     socket.emit("redirectToHome");
 };
 
+export function setActivePlayer(userID, roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return false
+    if (!isUserInThisRoom(userID, roomID)) return false
+    const userIndex = Object.keys(roomState.players).indexOf(userID);
+    roomState.activePlayer = { index: userIndex, userID: userID };
+    return true
+}
+
 export function setNextActivePlayer(roomState) {
     const playerIDs = Objects.keys(roomState.players);
     const playerCount = playerIDs.length;
     const currentActivePlayerIndex = roomState.activePlayer.index;
     const nextActivePlayerIndex = (currentActivePlayerIndex + 1) % (playerCount - 1);
-    roomState.activePlayer = {index: nextActivePlayerIndex, userID: Object.keys(roomState.players)[nextActivePlayerIndex]}
+    const nextActivePlayerUserID = Object.keys(roomState.players)[nextActivePlayerIndex];
+    roomState.activePlayer = {index: nextActivePlayerIndex, userID: nextActivePlayerUserID};
 };
 
 export function setRoomState(roomID, roomState) {
-    quizBattleState[roomID] = roomState;
+    quizBattleState[roomID] = {...roomState};
+};
+
+export function tryToReconnect(socket) {
+    const roomID = getCurrentRoomOfUserID(socket.user.userID);
+    if (!roomID) {
+        socket.emit("redirectToHome");
+        return
+    }
+    const existingRoom = doesRoomExist(roomID);
+    if (!existingRoom) {
+        socket.emit("redirectToHome");
+        return
+    }
+    const isHost = isHostOfRoom(socket.user.userID, roomID);
+    joinToRoom(socket, socket.user.userID, roomID, isHost);
+    socket.emit("redirectToRoom", roomID, () => { 
+        const roomState = getRoomState(roomID);
+        const gameState = mapRoomStateToGameState(roomState)
+        io.to(roomID).emit("gameStateUpdate", gameState);
+        if (isHost) socket.emit("setHostState", roomState);
+    });
 };
 
 export function verifyJWT(token) {
@@ -171,19 +237,27 @@ export function verifyJWT(token) {
     }
 };
 
+function createDeepCopy(object) {
+    return JSON.parse(JSON.stringify(object));
+}
+
 async function getQuizBattleByID(quizbattleID) {
-    const result = await QuizBattle.findOne({ _id: quizbattleID });
+    const result = await QuizBattle.findById(quizbattleID).populate([
+      { path: 'categories.questions.answeredFrom', model: 'User' },
+      { path: 'owner', model: 'User' }
+    ]);
     return result
 };
 
 function mapCategoriesForGameState(quizBattle) {
     return quizBattle.categories.map(category => ({
-        categoryName: category.title,
-        questions: category.questions.map(question => ({
-            hasPicture: question.picture && question.picture.length > 0,
-            hasAudio: question.audio && question.audio.length > 0,
-            worth: question.worth,
-            isAnswered: question.isAnswered,
+        categoryName: category?.title,
+        questions: category?.questions.map(question => ({
+            hasPicture: !!question?.picture?.length,
+            hasAudio: !!question?.audio?.length,
+            worth: question?.worth,
+            isAnswered: question?.isAnswered,
+            answeredFrom: question?.answeredFrom
         }))
     }));
 };
