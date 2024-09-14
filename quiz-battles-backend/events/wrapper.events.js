@@ -6,6 +6,9 @@ import handleIsRoomExisting from "./isRoomExisting.event.js";
 import handleMarkQuestion from "./markQuestion.event.js";
 import handleRevealQuestion from "./revealQuestion.event.js";
 import handleRevealAnswer from "./revealAnswer.event.js";
+import handleEndQuestion from "./endQuestion.event.js";
+import handleToggleReveal from "./toggleReveal.event.js";
+import handleBackToBoard from "./backToBoard.event.js";
 
 import { verifyJWT, tryToReconnect } from "../utils/quizbattleUtils.js";
 
@@ -30,6 +33,9 @@ export const handleQuizBattleEvents = (socket) => {
         socket.on("markQuestion", (index, roomID) => handleMarkQuestion(socket, index, roomID));
         socket.on("revealQuestion", (categoryIndex, questionIndex, roomID) => handleRevealQuestion(socket, categoryIndex, questionIndex, roomID));
         socket.on("revealAnswer", (categoryIndex, questionIndex, roomID) => handleRevealAnswer(socket, categoryIndex, questionIndex, roomID));
+        socket.on("toggleReveal", (categoryIndex, questionIndex, roomID) => handleToggleReveal(socket, categoryIndex, questionIndex, roomID));
+        socket.on("endQuestion", (categoryIndex, questionIndex, roomID) => handleEndQuestion(socket, categoryIndex, questionIndex, roomID));
+        socket.on("backToBoard", (roomID) => handleBackToBoard(socket, roomID))
         socket.on("tryToReconnect", () => tryToReconnect(socket));
     });
 };

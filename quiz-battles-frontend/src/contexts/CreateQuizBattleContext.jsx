@@ -76,7 +76,7 @@ function quizBattleReducer(state, action) {
         options: {
           ...state.options,
           money: {
-            ...state.options.quiz,
+            ...state.options.money,
             [action.option]: action.payload
           }
         }

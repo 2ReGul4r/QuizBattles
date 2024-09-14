@@ -4,11 +4,10 @@ import { useSocketContext } from "../contexts/SocketContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHeadphones, faImage } from "@fortawesome/free-solid-svg-icons";
 import { useUser } from "../contexts/UserContext";
-import toast from "react-hot-toast";
 
 
 const Board = () => {
-    const { gameState, hostState, activeRoom, markedQuestion } = useGameContext();
+    const { gameState, activeRoom, markedQuestion, setActiveQuestionIndex } = useGameContext();
     const { socket, isConnected } = useSocketContext();
     const { userState } = useUser();
 
@@ -41,8 +40,11 @@ const Board = () => {
     const questionAnsweredBy = (index) => {
         const question = getQuestion(index);
         if (!question) return ""
-        const answeredFrom = Array.from(question.answeredFrom.username).map(str => str.slice(0, 2)).join(" and ");
-        return answeredFrom
+        if (Array.from(question.answeredFrom).length === 1 ){
+            return question?.answeredFrom[0]?.username || ""
+        } else {
+            return Array.from(question.answeredFrom).map(userObj => userObj.username.slice(0, 2)).join(" and ")
+        }
     };
 
     const handleQuestionClick = (index) => {
@@ -51,13 +53,15 @@ const Board = () => {
         if (userState.userID === gameState.host.userID) {
             const categoryIndex = index%gameState.gameState.options.quiz.categoryCount;
             const questionIndex = Math.floor(index/gameState.gameState.options.quiz.categoryCount);
+            setActiveQuestionIndex(index);
             socket.emit("revealQuestion", categoryIndex, questionIndex, activeRoom);
+
         } else {
             if (userState.userID !== gameState.activePlayer.userID) return
             socket.emit("markQuestion", index, activeRoom);
         }
         
-    }
+    };
 
     const getQuestionCursor = (index) => {
         const question = getQuestion(index);
@@ -83,7 +87,7 @@ const Board = () => {
             {Array.from(Array((gameState.gameState.options.quiz.categoryCount * gameState.gameState.options.quiz.questionsPerCategory)).keys()).map((value, index) => (
                 <div 
                     key={`${index%gameState.gameState.options.quiz.categoryCount}-${Math.floor(index/gameState.gameState.options.quiz.categoryCount)}`} 
-                    className={`card ${isQuestionAnswered(index) ? "bg-slate-900" : "bg-base-100"} ${markedQuestion === index && !isQuestionAnswered(index) ? "marked-question-border" : ""}`}
+                    className={`card ${isQuestionAnswered(index) ? "bg-slate-900 opacity-25" : "bg-base-100"} ${markedQuestion === index && !isQuestionAnswered(index) ? "marked-question-border" : ""}`}
                 >
                     <div 
                         className={`flex flex-col flex-grow flex-shrink basis-auto p-6 ${getQuestionCursor(index)}`}

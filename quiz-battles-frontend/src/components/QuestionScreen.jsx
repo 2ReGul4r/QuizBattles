@@ -1,7 +1,7 @@
 import { useGameContext } from "../contexts/GameContext";
 
 const QuestionScreen = () => {
-    const { gameState, hostState } = useGameContext();
+    const { gameState } = useGameContext();
     return (
         <div className="card bg-base-100 shadow-xl items-center text-center flex-grow basis-full p-8 gap-8">
             {gameState.activeQuestion.question && (<div className="card-title self-center text-4xl">{gameState.activeQuestion.question}</div>)}

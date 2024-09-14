@@ -15,6 +15,5 @@ export default async (socket, quizbattleID, callback) => {
         }
         const gameState = mapRoomStateToGameState(currentRoomState);
         io.to(roomID).emit("gameStateUpdate", gameState);
-        socket.emit("setHostState", currentRoomState);
     })
 }

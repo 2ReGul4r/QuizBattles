@@ -38,7 +38,8 @@ export async function createInitialRoomState(socket, quizbattleID) {
         hasActiveQuestion: false,
         activeQuestion: {},
         activeAnswer: {},
-        hasActiveBuzzer: false,
+        activeBuzzer: "", //UserID
+        activeGuesses: {}, // key: UserID, value string guess
         skippingPlayers: [],
         buzzeredPlayers: [],
         score: {},
@@ -179,9 +180,10 @@ export function mapRoomStateToGameState(roomState) {
             options: createDeepCopy(roomState.quizbattle.options)
         },
         hasActiveQuestion: roomState.hasActiveQuestion,
-        activeQuestion: roomState.activeQuestion,
-        activeAnswer: roomState.activeAnswer,
-        hasActiveBuzzer: roomState.hasActiveBuzzer,
+        activeQuestion: createDeepCopy(roomState.activeQuestion),
+        activeAnswer: createDeepCopy(roomState.activeAnswer),
+        activeBuzzer: roomState.activeBuzzer,
+        activeGuesses: createDeepCopy(roomState.activeGuesses),
         skippingPlayers: createDeepCopy(roomState.skippingPlayers),
         buzzeredPlayers: createDeepCopy(roomState.buzzeredPlayers),
         score: createDeepCopy(roomState.score),
@@ -241,6 +243,12 @@ export function setRoomState(roomID, roomState) {
     quizBattleState[roomID] = {...roomState};
 };
 
+export function setQuestionIsAnswered(categoryIndex, questionIndex, roomID, isAnswered) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return false
+    roomState.quizbattle.categories[categoryIndex].questions[questionIndex].isAnswered = isAnswered;
+}
+
 export function tryToReconnect(socket) {
     const roomID = getCurrentRoomOfUserID(socket.user.userID);
     if (!roomID) {
@@ -258,7 +266,6 @@ export function tryToReconnect(socket) {
         const roomState = getRoomState(roomID);
         const gameState = mapRoomStateToGameState(roomState)
         io.to(roomID).emit("gameStateUpdate", gameState);
-        if (isHost) socket.emit("setHostState", roomState);
     });
 };
 

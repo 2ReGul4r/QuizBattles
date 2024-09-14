@@ -32,6 +32,18 @@ const CreateBattleOptions = () => {
         parseInt(state.options.battle[shop].rarities.legendary) === 100)
     }
 
+    //DEBUG
+    return (
+        <div className="flex flex-wrap gap-8 justify-center flex-row">
+            <div className="card bg-base-200 shadow-xl items-center text-center flex-grow basis-full">
+                <div className="card-body justify-center w-full">
+                    <h2 className="card-title self-center pb-4 text-4xl">COMING SOON!</h2>
+
+                </div>
+            </div>
+        </div>
+    )
+
     return (
         <div className="flex flex-wrap gap-8 justify-center flex-row">
             <div className="card bg-base-200 shadow-xl items-center text-center flex-grow basis-full">

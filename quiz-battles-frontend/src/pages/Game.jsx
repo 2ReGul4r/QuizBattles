@@ -9,7 +9,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUserXmark } from "@fortawesome/free-solid-svg-icons";
 
 const Game = () => {
-  const { activeRoom, gameState, hostState } = useGameContext();
+  const { activeRoom, gameState } = useGameContext();
   const { socket, isConnected } = useSocketContext();
   const { userState } = useUser();
 

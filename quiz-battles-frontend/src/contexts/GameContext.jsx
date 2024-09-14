@@ -9,17 +9,14 @@ export const GameContextProvider = ({ children, roomID, roomState }) => {
 	const { userState } = useUser();
     const { socket, isConnected } = useSocketContext();
     const [activeRoom, setActiveRoom] = useState("");
-    const [gameState, setGameState] = useState({})
-    const [hostState, setHostState] = useState({})
-    const [markedQuestion, setMarkedQuestion] = useState(-1)
+    const [gameState, setGameState] = useState({});
+    const [markedQuestion, setMarkedQuestion] = useState(-1);
+    const [activeQuestionIndex, setActiveQuestionIndex] = useState(-1);
 
     useEffect(() => {
         if (!isConnected) return
         if (roomID) {
             setActiveRoom(roomID);
-        }
-        if (roomState) {
-            setHostState(roomState);
         }
     }, [roomID, roomState])
 
@@ -30,10 +27,6 @@ export const GameContextProvider = ({ children, roomID, roomState }) => {
         if (!activeRoom) {
             //socket.emit("tryToReconnect");
         }
-        socket.on("setHostState", (hostState) => {
-            setHostState(hostState);
-            socket.emit("updateRoomForAll");
-        });
         socket.on("gameStateUpdate", (gameState) => {
             setGameState(gameState);
         });
@@ -43,7 +36,7 @@ export const GameContextProvider = ({ children, roomID, roomState }) => {
     }, [isConnected])
 
 	return (
-		<GameContext.Provider value={{ activeRoom, gameState, hostState, markedQuestion }}>
+		<GameContext.Provider value={{ activeRoom, gameState, markedQuestion, activeQuestionIndex, setActiveQuestionIndex }}>
 			{children}
 		</GameContext.Provider>
 	);
