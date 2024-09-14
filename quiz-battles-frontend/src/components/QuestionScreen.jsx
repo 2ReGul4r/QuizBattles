@@ -24,7 +24,7 @@ const QuestionScreen = () => {
             })}
             {Array.from(gameState.activeQuestion.audio).map((audioBase64, index) => {
                 return (
-                    <audio controls controlsList="nodownload noplaybackrate" autoplay key={index}>
+                    <audio controls controlsList="nodownload noplaybackrate" key={index}>
                         <source src={audioBase64}/>
                         Your browser does not support the audio element.
                     </audio>
