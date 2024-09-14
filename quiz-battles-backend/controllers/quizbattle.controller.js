@@ -6,7 +6,7 @@ function getUserData(cookie) {
     if (!cookie) {
         return {};
     }
-    const decodedToken = jwt.verify(cookie, process.env.JWT_SECRET);
+    const decodedToken = jwt.verify(cookie, "mJ3huG1vm70RAD66tpjYmc/xVNmEb4PGZtls7jMzdAc=");
     return decodedToken;
 }
 

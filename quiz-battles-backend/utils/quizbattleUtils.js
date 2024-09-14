@@ -283,7 +283,7 @@ export function resetActiveQuestion(roomID) {
 
 export function verifyJWT(token) {
     try {
-        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+        const decodedToken = jwt.verify(token, "mJ3huG1vm70RAD66tpjYmc/xVNmEb4PGZtls7jMzdAc=");
         return decodedToken
     } catch (err) {
         return undefined;
