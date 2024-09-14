@@ -16,7 +16,7 @@ export const SocketContextProvider = ({ children }) => {
 	useEffect(() => {
 		if (userState.userID) {
 			const token = Cookies.get("userjwt");
-			const socket = io("https://regul4r.com/", {
+			const socket = io("http://localhost:5000/", {
 				auth: {token: token},
 			});
 
