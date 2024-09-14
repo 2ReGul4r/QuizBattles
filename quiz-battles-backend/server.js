@@ -7,7 +7,7 @@ import authRoutes from "./routes/auth.routes.js";
 import quizBattleRoutes from "./routes/quizbattle.routes.js";
 import { app, server } from "./socket/socket.js";
 
-const PORT = 5000;
+const PORT = 7000;
 
 dotenv.config();
 
