@@ -45,12 +45,18 @@ const Board = () => {
         return answeredFrom
     };
 
-    const handleMarkedQuestion = (index) => {
+    const handleQuestionClick = (index) => {
         if (!isConnected) return
-        if (userState.userID === gameState.host.userID) return
-        if (userState.userID !== gameState.activePlayer.userID) return
         if (isQuestionAnswered(index)) return
-        socket.emit("markQuestion", index, activeRoom);
+        if (userState.userID === gameState.host.userID) {
+            const categoryIndex = index%gameState.gameState.options.quiz.categoryCount;
+            const questionIndex = Math.floor(index/gameState.gameState.options.quiz.categoryCount);
+            socket.emit("revealQuestion", categoryIndex, questionIndex, activeRoom);
+        } else {
+            if (userState.userID !== gameState.activePlayer.userID) return
+            socket.emit("markQuestion", index, activeRoom);
+        }
+        
     }
 
     const getQuestionCursor = (index) => {
@@ -63,7 +69,7 @@ const Board = () => {
     }
 
     if (Object.keys(gameState).length <= 0) {
-        return <div>Loading...</div>;
+        return <div>Loading...</div>
     }
     return (
         <div className="grid gap-4 w-full" style={{gridTemplateColumns: `repeat(${gameState.gameState.options.quiz.categoryCount}, 1fr)`}}>
@@ -80,8 +86,8 @@ const Board = () => {
                     className={`card ${isQuestionAnswered(index) ? "bg-slate-900" : "bg-base-100"} ${markedQuestion === index && !isQuestionAnswered(index) ? "marked-question-border" : ""}`}
                 >
                     <div 
-                        className={`flex flex-col flex-grow flex-shrink basis-auto p-6 ${getQuestionCursor(index)}`} 
-                        onClick={() => handleMarkedQuestion(index)}
+                        className={`flex flex-col flex-grow flex-shrink basis-auto p-6 ${getQuestionCursor(index)}`}
+                        onClick={() => handleQuestionClick(index)}
                     >
                         {isQuestionAnswered(index) && <div className="card-actions justify-start">{questionAnsweredBy(index)}</div>}
                         <div className="card-title self-center text-2xl">{getWorthForQuestion(index)}</div>

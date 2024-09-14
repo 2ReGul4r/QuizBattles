@@ -16,7 +16,13 @@ export function cleanUpRoom(roomID) {
         if (userIDRoomIDMap.has(userID)) userIDRoomIDMap.delete(userID);
         if (hostIDRoomIDMap.has(userID)) hostIDRoomIDMap.delete(userID);
     });
-    delete quizBattleState[roomID]
+    delete quizBattleState[roomID];
+}
+
+export function checkHasActiveQuestion(roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return
+    roomState.hasActiveQuestion = (!!Object.keys(roomState.activeQuestion).length || !!Object.keys(roomState.activeAnswer).length) || false;
 }
 
 export async function createInitialRoomState(socket, quizbattleID) {
@@ -30,6 +36,9 @@ export async function createInitialRoomState(socket, quizbattleID) {
         quizbattle: createDeepCopy(quizbattle),
         activePlayer: {index: 0, userID: undefined},
         hasActiveQuestion: false,
+        activeQuestion: {},
+        activeAnswer: {},
+        hasActiveBuzzer: false,
         skippingPlayers: [],
         buzzeredPlayers: [],
         score: {},
@@ -170,6 +179,9 @@ export function mapRoomStateToGameState(roomState) {
             options: createDeepCopy(roomState.quizbattle.options)
         },
         hasActiveQuestion: roomState.hasActiveQuestion,
+        activeQuestion: roomState.activeQuestion,
+        activeAnswer: roomState.activeAnswer,
+        hasActiveBuzzer: roomState.hasActiveBuzzer,
         skippingPlayers: createDeepCopy(roomState.skippingPlayers),
         buzzeredPlayers: createDeepCopy(roomState.buzzeredPlayers),
         score: createDeepCopy(roomState.score),
@@ -185,6 +197,16 @@ export function removePlayerFromRoom(socket, userID, roomID, sendError, errorMes
     socket.emit("redirectToHome");
 };
 
+export function setActiveAnswer(categoryIndex, questionIndex, roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return false
+    roomState.activeAnswer = {
+        text: roomState?.quizbattle?.categories[categoryIndex]?.questions[questionIndex]?.answer?.text || "",
+        picture: roomState?.quizbattle?.categories[categoryIndex]?.questions[questionIndex]?.answer?.picture || [],
+        audio: roomState?.quizbattle?.categories[categoryIndex]?.questions[questionIndex]?.answer?.audio || [],
+    };
+}
+
 export function setActivePlayer(userID, roomID) {
     const roomState = getRoomState(roomID);
     if (!roomState) return false
@@ -192,6 +214,18 @@ export function setActivePlayer(userID, roomID) {
     const userIndex = Object.keys(roomState.players).indexOf(userID);
     roomState.activePlayer = { index: userIndex, userID: userID };
     return true
+}
+
+export function setActiveQuestion(categoryIndex, questionIndex, roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return false
+    roomState.activeQuestion = {
+        question: roomState?.quizbattle?.categories[categoryIndex]?.questions[questionIndex]?.question || "",
+        picture: roomState?.quizbattle?.categories[categoryIndex]?.questions[questionIndex]?.picture || [],
+        audio: roomState?.quizbattle?.categories[categoryIndex]?.questions[questionIndex]?.audio || [],
+        worth: roomState?.quizbattle?.categories[categoryIndex]?.questions[questionIndex]?.worth || 0,
+        questionType: roomState?.quizbattle?.categories[categoryIndex]?.questions[questionIndex]?.questionType || "buzzer",
+    };
 }
 
 export function setNextActivePlayer(roomState) {
@@ -228,6 +262,18 @@ export function tryToReconnect(socket) {
     });
 };
 
+export function resetActiveAnswer(roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return false
+    roomState.activeAnswer = {};
+}
+
+export function resetActiveQuestion(roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return false
+    roomState.activeQuestion = {};
+}
+
 export function verifyJWT(token) {
     try {
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
@@ -257,7 +303,8 @@ function mapCategoriesForGameState(quizBattle) {
             hasAudio: !!question?.audio?.length,
             worth: question?.worth,
             isAnswered: question?.isAnswered,
-            answeredFrom: question?.answeredFrom
+            answeredFrom: question?.answeredFrom,
+            isLockedForCount: question?.isLockedForCount
         }))
     }));
 };

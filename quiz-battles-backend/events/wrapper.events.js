@@ -3,7 +3,9 @@ import handleHostQuizBattle from "./hostQuizBattle.event.js";
 import handleLeaveQuizBattle from "./leaveQuizBattle.event.js";
 import handleKickPlayer from "./kickPlayer.event.js";
 import handleIsRoomExisting from "./isRoomExisting.event.js";
-import handleMarkQuestion from "./markQuestion.event.js"
+import handleMarkQuestion from "./markQuestion.event.js";
+import handleRevealQuestion from "./revealQuestion.event.js";
+import handleRevealAnswer from "./revealAnswer.event.js";
 
 import { verifyJWT, tryToReconnect } from "../utils/quizbattleUtils.js";
 
@@ -26,6 +28,8 @@ export const handleQuizBattleEvents = (socket) => {
         socket.on("kickPlayer", (userID, roomID, callback) => handleKickPlayer(socket, userID, roomID, callback));
         socket.on("isRoomExisting", (roomID) => handleIsRoomExisting(socket, roomID));
         socket.on("markQuestion", (index, roomID) => handleMarkQuestion(socket, index, roomID));
+        socket.on("revealQuestion", (categoryIndex, questionIndex, roomID) => handleRevealQuestion(socket, categoryIndex, questionIndex, roomID));
+        socket.on("revealAnswer", (categoryIndex, questionIndex, roomID) => handleRevealAnswer(socket, categoryIndex, questionIndex, roomID));
         socket.on("tryToReconnect", () => tryToReconnect(socket));
     });
 };

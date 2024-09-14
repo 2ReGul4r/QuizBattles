@@ -70,6 +70,17 @@ function quizBattleReducer(state, action) {
         ...state,
         categories: categoriesUpdate
       };
+    case "UPDATE_MONEY_OPTION":
+      return { 
+        ...state, 
+        options: {
+          ...state.options,
+          money: {
+            ...state.options.quiz,
+            [action.option]: action.payload
+          }
+        }
+      };
     case "UPDATE_QUIZ_OPTION":
       return { 
         ...state, 

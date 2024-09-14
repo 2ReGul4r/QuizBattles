@@ -3,6 +3,7 @@ import { QuizBattleContext } from "../contexts/CreateQuizBattleContext";
 import CreateQuizOptions from "./CreateQuizOptions";
 import CreateBattleOptions from "./CreateBattleOptions";
 import CreateBoard from "./CreateBoard";
+import CreateMoneyOptions from "./CreateMoneyOptions";
 
 const CreateQuizPagesWrapper = (props) => {
     const { state } = useContext(QuizBattleContext);
@@ -19,8 +20,9 @@ const CreateQuizPagesWrapper = (props) => {
     return (
         <div>
             {props.page === 1 && (<CreateQuizOptions/>)}
-            {props.page === 2 && (<CreateBattleOptions/>)}
-            {props.page === 3 && (<CreateBoard/>)}
+            {props.page === 2 && (<CreateMoneyOptions/>)}
+            {props.page === 3 && (<CreateBattleOptions/>)}
+            {props.page === 4 && (<CreateBoard/>)}
         </div>
     )
 }
