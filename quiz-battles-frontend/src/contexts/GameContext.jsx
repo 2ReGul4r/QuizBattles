@@ -1,59 +1,42 @@
 import { createContext, useState, useContext, useEffect } from "react";
 import { useUser } from "./UserContext";
 import { useSocketContext } from "./SocketContext";
+import { useNavigate } from "react-router-dom";
 
 const GameContext = createContext();
 
-export const GameContextProvider = ({ children, lobbyCode, roomState, playersInRoom }) => {
+export const GameContextProvider = ({ children, roomID, roomState }) => {
 	const { userState } = useUser();
     const { socket, isConnected } = useSocketContext();
     const [activeRoom, setActiveRoom] = useState("");
-    const [roomPlayers, setRoomPlayers] = useState({})
-    const [host, setHost] = useState("")
-    const [gameState, setGameState] = useState({})
-    const [hostState, setHostState] = useState({})
+    const [gameState, setGameState] = useState({});
+    const [markedQuestion, setMarkedQuestion] = useState(-1);
+    const [activeQuestionIndex, setActiveQuestionIndex] = useState(-1);
 
     useEffect(() => {
-        if (isConnected) {
-            socket.on("playersRoomUpdate", (playersOfRoom) => {
-                setRoomPlayers(playersOfRoom);
-                socket.emit("updateRoomForAll");
-            })
-
-            socket.on("gameStateUpdate", (gameState) => {
-                setGameState(gameState);
-                socket.emit("updateRoomForAll");
-            })
-        
-            socket.on("setHostState", (hostState) => {
-                setHostState(hostState);
-                socket.emit("updateRoomForAll");
-            })
-
-            socket.emit("getGameUpdate", (gameState, playersOfRoom) => {
-                setGameState(gameState);
-                setRoomPlayers(playersOfRoom);
-            })
+        if (!isConnected) return
+        if (roomID) {
+            setActiveRoom(roomID);
         }
+    }, [roomID, roomState])
+
+    useEffect(() => {
+        if (!isConnected) {
+            return
+        }
+        if (!activeRoom) {
+            //socket.emit("tryToReconnect");
+        }
+        socket.on("gameStateUpdate", (gameState) => {
+            setGameState(gameState);
+        });
+        socket.on("markedQuestion", (markedQuestionIndex) => {
+            setMarkedQuestion(markedQuestionIndex);
+        })
     }, [isConnected])
 
-    useEffect(() => {
-        if (lobbyCode) {
-            setActiveRoom(lobbyCode);
-            socket.emit("updateRoomForAll");
-        }
-        if (roomState) {
-            setHostState(roomState);
-            socket.emit("updateRoomForAll");
-        }
-        if (playersInRoom) {
-            setRoomPlayers(playersInRoom);
-            socket.emit("updateRoomForAll");
-        }
-    }, [lobbyCode, roomState, playersInRoom])
-
 	return (
-		<GameContext.Provider value={{ roomPlayers, activeRoom, gameState, hostState }}>
+		<GameContext.Provider value={{ activeRoom, gameState, markedQuestion, activeQuestionIndex, setActiveQuestionIndex }}>
 			{children}
 		</GameContext.Provider>
 	);

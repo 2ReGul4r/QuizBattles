@@ -12,9 +12,10 @@ const Home = () => {
   const { socket } = useSocketContext();
 
   const handleJoinGame = () => {
-    socket.emit("joinQuizBattle", joinRoomID, async (joinedRoomSuccessfully, lobbyCode) => {
+    socket.emit("joinQuizBattle", joinRoomID, async (joinedRoomSuccessfully, roomID) => {
       if(joinedRoomSuccessfully) {
-        await navigate("/game", { state: { lobbyCode: lobbyCode }})
+        await navigate("/game", { state: { roomID }});
+        socket.emit("joinNavigationComplete");
       } else {
         toast.error("Could not join room.")
       }
@@ -23,9 +24,9 @@ const Home = () => {
 
   const handleJoinRoomChange = (event) => {
     const value = event.target.value;
-    const upperValue = value.toUpperCase()
+    const upperValue = value.toUpperCase();
     const cleanValue = upperValue.replace(/[^A-Z0-9]/g, '');
-    setJoinRoomID(cleanValue)
+    setJoinRoomID(cleanValue);
   }
 
   return (

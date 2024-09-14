@@ -1,26 +1,37 @@
-import React, {useState, useContext} from "react";
+import React, {useState, useContext, useEffect} from "react";
 import { QuizBattleContext } from "../contexts/CreateQuizBattleContext";
 
 const EditQuestionAnswerModal = (props) => {
-    const initialQuestionState = {
-        question: "",
-        picture: [],
-        audio: [],
-        worth: 150,
-        questionType: "",
-        isLockedForCount: 0
-    };
-
-    const initialAnswerState = {
-        text: "",
-        picture: [],
-        audio: [],
-    };
-
     const { state, dispatch } = useContext(QuizBattleContext);
-    const [question, setQuestion] = useState(initialQuestionState);
-    const [answer, setAnswer] = useState(initialAnswerState);
+    const [question, setQuestion] = useState({});
+    const [answer, setAnswer] = useState({});
     const {modalIndex, categoryIndex, questionIndex} = props;
+
+    useEffect(() => {
+        const loadQuestionData = () => {
+            const pictureBase64 =state?.categories[categoryIndex]?.questions[questionIndex]?.picture || [];
+            const audioBase64 = state?.categories[categoryIndex]?.questions[questionIndex]?.audio || [];
+
+            const answerPictureBase64 = state?.categories[categoryIndex]?.questions[questionIndex]?.answer?.picture || [];
+            const answerAudioBase64 = state?.categories[categoryIndex]?.questions[questionIndex]?.answer?.audio || [];
+
+            setQuestion({
+                question: state?.categories[categoryIndex]?.questions[questionIndex]?.question || "",
+                picture: pictureBase64,
+                audio: audioBase64,
+                worth: state?.categories[categoryIndex]?.questions[questionIndex]?.worth || 150,
+                questionType: state?.categories[categoryIndex]?.questions[questionIndex]?.questionType || "default",
+                isLockedForCount: state?.categories[categoryIndex]?.questions[questionIndex]?.isLockedForCount || 0
+            });
+            setAnswer({
+                text: state?.categories[categoryIndex]?.questions[questionIndex]?.answer?.text || "",
+                picture: answerPictureBase64,
+                audio: answerAudioBase64,
+            });
+        };
+
+        loadQuestionData();
+    }, [state]);
     
     const setQuestionOption = (option, newValue) => {
         setQuestion({...question, [option]: newValue});
@@ -30,16 +41,26 @@ const EditQuestionAnswerModal = (props) => {
         setAnswer({...answer, [option]: newValue});
     };
 
-    const handleAnswerFileChange = (filetype, event) => {
+    const handleFileChange = (filetype, event, isAnswer) => {
         const files = event.target.files;
+
+        if (files.length > 3) {
+            alert("You can only upload up to 3 files.");
+            return
+        }
+        
         const fileReaders = [];
     
         Object.keys(files).forEach((i) => {
             const file = files[i];
             const reader = new FileReader();
-            const fileReaderPromise = new Promise((resolve) => {
+    
+            const fileReaderPromise = new Promise((resolve, reject) => {
                 reader.onload = () => {
                     resolve(reader.result);
+                };
+                reader.onerror = () => {
+                    reject(reader.error);
                 };
                 reader.readAsDataURL(file);
             });
@@ -47,30 +68,21 @@ const EditQuestionAnswerModal = (props) => {
         });
     
         Promise.all(fileReaders).then((results) => {
-            setAnswer({...answer, [filetype]: [...answer[filetype], ...results]});
+            if (isAnswer) {
+                setAnswer({
+                    ...answer,
+                    [filetype]: [...answer[filetype], ...results]
+                });
+            } else {
+                setQuestion({
+                    ...question,
+                    [filetype]: [...question[filetype], ...results]
+                });
+            }
+        }).catch(error => {
+            console.error("Error reading files:", error);
         });
     };
-
-    const handleQuestionFileChange = (filetype, event) => {
-        const files = event.target.files;
-        const fileReaders = [];
-    
-        Object.keys(files).forEach((i) => {
-            const file = files[i];
-            const reader = new FileReader();
-            const fileReaderPromise = new Promise((resolve) => {
-                reader.onload = () => {
-                    resolve(reader.result);
-                };
-                reader.readAsDataURL(file);
-            });
-            fileReaders.push(fileReaderPromise);
-        });
-    
-        Promise.all(fileReaders).then((results) => {
-            setQuestion({...question, [filetype]: [...question[filetype], ...results]});
-        });
-    }
 
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -84,6 +96,15 @@ const EditQuestionAnswerModal = (props) => {
         document.getElementById(`modal-${modalIndex}`).close();
     };
 
+    if (Object.keys(question).length <= 0 || Object.keys(answer).length <= 0) {
+        return (
+            <div className="flex flex-col items-center justify-center m-16">
+                <p className="text-2xl mb-4">Loading...</p>
+                <progress className="progress progress-primary w-96" />
+            </div>
+        )
+    }
+
     return (
         <dialog id={`modal-${modalIndex}`} className="modal">
             <div className="flex flex-col w-9/12 hero bg-base-300 rounded-lg p-8">
@@ -94,23 +115,31 @@ const EditQuestionAnswerModal = (props) => {
                             <textarea className="textarea textarea-bordered w-full" value={question.question} placeholder="Question Text" onInput={(event) => setQuestionOption("question", event.target.value)}/>
                             <div className="form-control w-full">
                                 <label className="label cursor-pointer">
-                                    <span className="label-text pr-4">Picture</span>
-                                    <input type="file" multiple className={`file-input w-full max-w-lg ${question.picture.length > 0 ? "file-input-success" : "file-input-bordered"}`} accept="image/png, image/gif, image/jpeg" onChange={(event) => handleQuestionFileChange("picture", event)}/>
+                                    <span className="label-text pr-4">Pictures</span>
+                                    <input type="file" multiple className={`file-input w-full max-w-lg ${question.picture.length > 0 ? "file-input-success" : "file-input-bordered"}`} accept="image/*" onChange={(event) => handleFileChange("picture", event, false)}/>
                                 </label>
+                                <div className="flex gap-2 overflow-auto">
+                                    {question.picture.map((data, index) => {
+                                        return <img key={index} src={data} alt={`question-pic-${index}`} width="100" />
+                                    })}
+                                </div>
                             </div>
                             <div className="form-control w-full">
                                 <label className="label cursor-pointer">
-                                    <span className="label-text pr-4">Audio</span>
-                                    <input type="file" multiple className={`file-input w-full max-w-lg ${question.audio.length > 0 ? "file-input-success" : "file-input-bordered"}`} onChange={(event) => handleQuestionFileChange("audio", event)}/>
+                                    <span className="label-text pr-4">Audios</span>
+                                    <input type="file" multiple className={`file-input w-full max-w-lg ${question.audio.length > 0 ? "file-input-success" : "file-input-bordered"}`} accept="audio/*" onChange={(event) => handleFileChange("audio", event, false)}/>
                                 </label>
+                                <div>
+                                    {question.audio.length > 0 && <p>{question.audio.length} audio files uploaded</p>}
+                                </div>
                             </div>
                             <label className="input input-bordered flex items-center gap-4 mb-2 w-full">
                                 <span className="label-text font-bold">Worth</span>
                                 <input type="number" className="grow spinner text-end no-spinner" value={question.worth} min="0" onChange={(event) => setQuestionOption("worth", parseInt(event.target.value))}/>
                                 <span>$</span>
                             </label>
-                            <select className="select select-bordered w-full mb-2" defaultValue="default" onChange={(event) => setQuestionOption("questionType", event.target.value)}>
-                                <option disabled value="default" className="font-bold">Question type</option>
+                            <select className="select select-bordered w-full mb-2" defaultValue={question.questionType} onChange={(event) => setQuestionOption("questionType", event.target.value)}>
+                                <option disabled value={"default"} className="font-bold">Question type</option>
                                 <option value="buzzer">Buzzer</option>
                                 <option value="guess">Guess</option>
                             </select>
@@ -126,15 +155,23 @@ const EditQuestionAnswerModal = (props) => {
                             <textarea className="textarea textarea-bordered w-full" placeholder="Answer Text" value={answer.text} onInput={(event) => setAnswerOption("text", event.target.value)}/>
                             <div className="form-control w-full">
                                 <label className="label cursor-pointer">
-                                    <span className="label-text pr-4">Picture</span>
-                                    <input type="file" multiple className={`file-input w-full max-w-lg ${answer.picture.length > 0 ? "file-input-success" : "file-input-bordered"}`} accept="image/png, image/gif, image/jpeg" onChange={(event) => handleAnswerFileChange("picture", event)}/>
+                                    <span className="label-text pr-4">Pictures</span>
+                                    <input type="file" multiple className={`file-input w-full max-w-lg ${answer.picture.length > 0 ? "file-input-success" : "file-input-bordered"}`} accept="image/*" onChange={(event) => handleFileChange("picture", event, true)}/>
                                 </label>
+                                <div className="flex gap-2 overflow-auto">
+                                    {answer.picture.map((data, index) => {
+                                        return <img key={index} src={data} alt={`answer-pic-${index}`} width="100" />
+                                    })}
+                                </div>
                             </div>
                             <div className="form-control w-full">
                                 <label className="label cursor-pointer">
-                                    <span className="label-text pr-4">Audio</span>
-                                    <input type="file" multiple className={`file-input w-full max-w-lg ${answer.audio.length > 0 ? "file-input-success" : "file-input-bordered"}`} onChange={(event) => handleAnswerFileChange("audio", event)}/>
+                                    <span className="label-text pr-4">Audios</span>
+                                    <input type="file" multiple className={`file-input w-full max-w-lg ${answer.audio.length > 0 ? "file-input-success" : "file-input-bordered"}`} accept="audio/*" onChange={(event) => handleFileChange("audio", event, true)}/>
                                 </label>
+                                <div>
+                                    {answer.audio.length > 0 && <p>{answer.audio.length} audio files uploaded</p>}
+                                </div>
                             </div>
                         </div>
                     </div>

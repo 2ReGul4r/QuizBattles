@@ -21,13 +21,12 @@ export const SocketContextProvider = ({ children }) => {
 			});
 
 			socket.on("redirectToRoom", async (roomID, callback) => {
-				await navigate("/game", { state: { lobbyCode: roomID }});
-				socket.emit("updateRoomForAll");
+				await navigate("/game", { state: { roomID }});
 				callback();
 			})
 
-			socket.on("redirectToHome", () => {
-				navigate("/");
+			socket.on("redirectToHome", async () => {
+				await navigate("/");
 			})
 
 			handleSocketErrors(socket);
