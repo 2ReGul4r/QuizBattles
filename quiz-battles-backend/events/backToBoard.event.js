@@ -1,5 +1,4 @@
-import { getRoomState, mapRoomStateToGameState, doesRoomExist, isHostOfRoom, resetActiveQuestion, resetActiveAnswer, checkHasActiveQuestion } from "../utils/quizbattleUtils.js";
-import { io } from "../socket/socket.js";
+import { cleanUpActives, doesRoomExist, isHostOfRoom, sendUpdates } from "../utils/quizbattleUtils.js";
 
 export default (socket, roomID) => {
     if (!doesRoomExist(roomID)) {
@@ -10,10 +9,6 @@ export default (socket, roomID) => {
         socket.emit("sendError", { error: "You are not the host of this game."});
         return
     }
-    resetActiveAnswer(roomID);
-    resetActiveQuestion(roomID);
-    checkHasActiveQuestion(roomID);
-    const roomState = getRoomState(roomID);
-    const gameState = mapRoomStateToGameState(roomState)
-    io.to(roomID).emit("gameStateUpdate", gameState);
+    cleanUpActives(roomID);
+    sendUpdates(roomID);
 }

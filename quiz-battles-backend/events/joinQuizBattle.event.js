@@ -1,5 +1,4 @@
-import { doesRoomExist, isRoomFull, joinToRoom, getRoomState, mapRoomStateToGameState, setActivePlayer } from "../utils/quizbattleUtils.js";
-import { io } from "../socket/socket.js";
+import { doesRoomExist, isRoomFull, joinToRoom, getRoomState, sendUpdates, setActivePlayer } from "../utils/quizbattleUtils.js";
 
 export default async (socket, roomID, callback) => {
     if (!(doesRoomExist(roomID))) { //If room does not exist
@@ -16,8 +15,7 @@ export default async (socket, roomID, callback) => {
     socket.on("joinNavigationComplete", () => {
         const roomState = getRoomState(roomID);
         const activePlayerUserID = Object.keys(roomState.players)[0];
-        if (roomState.activePlayer.userID === undefined) setActivePlayer(activePlayerUserID, roomID);
-        const gameState = mapRoomStateToGameState(roomState);
-        io.to(roomID).emit("gameStateUpdate", gameState);
+        if (roomState.activePlayer.userID === null) setActivePlayer(activePlayerUserID, roomID);
+        sendUpdates(roomID);
      });
 } 

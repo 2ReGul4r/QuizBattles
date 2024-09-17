@@ -1,5 +1,4 @@
-import { createNewQuizBattleRoom, mapRoomStateToGameState, getRoomState, setRoomState } from "../utils/quizbattleUtils.js";
-import { io } from "../socket/socket.js";
+import { createNewQuizBattleRoom, sendUpdates, setRoomState } from "../utils/quizbattleUtils.js";
 
 export default async (socket, quizbattleID, callback) => {
     const { roomID, newRoomState } = await createNewQuizBattleRoom(socket, quizbattleID);
@@ -8,12 +7,6 @@ export default async (socket, quizbattleID, callback) => {
     callback(roomID, newRoomState);
 
     socket.on("hostNavigationComplete", () => {
-        const currentRoomState = getRoomState(roomID);
-        if (!currentRoomState) {
-            //TODO: delete room here
-            return 
-        }
-        const gameState = mapRoomStateToGameState(currentRoomState);
-        io.to(roomID).emit("gameStateUpdate", gameState);
+        sendUpdates(roomID);
     })
 }

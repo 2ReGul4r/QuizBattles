@@ -1,15 +1,13 @@
 import { createContext, useState, useContext, useEffect } from "react";
-import { useUser } from "./UserContext";
 import { useSocketContext } from "./SocketContext";
-import { useNavigate } from "react-router-dom";
 
 const GameContext = createContext();
 
 export const GameContextProvider = ({ children, roomID, roomState }) => {
-	const { userState } = useUser();
     const { socket, isConnected } = useSocketContext();
     const [activeRoom, setActiveRoom] = useState("");
     const [gameState, setGameState] = useState({});
+    const [hostState, setHostState] = useState({});
     const [markedQuestion, setMarkedQuestion] = useState(-1);
     const [activeQuestionIndex, setActiveQuestionIndex] = useState(-1);
 
@@ -24,19 +22,20 @@ export const GameContextProvider = ({ children, roomID, roomState }) => {
         if (!isConnected) {
             return
         }
-        if (!activeRoom) {
-            //socket.emit("tryToReconnect");
-        }
+        socket.on("hostStateUpdate", (hostState) => {
+            setHostState(hostState);
+        });
         socket.on("gameStateUpdate", (gameState) => {
             setGameState(gameState);
+            console.log(gameState);
         });
         socket.on("markedQuestion", (markedQuestionIndex) => {
             setMarkedQuestion(markedQuestionIndex);
-        })
+        });
     }, [isConnected])
 
 	return (
-		<GameContext.Provider value={{ activeRoom, gameState, markedQuestion, activeQuestionIndex, setActiveQuestionIndex }}>
+		<GameContext.Provider value={{ activeRoom, gameState, hostState, markedQuestion, activeQuestionIndex, setActiveQuestionIndex }}>
 			{children}
 		</GameContext.Provider>
 	);

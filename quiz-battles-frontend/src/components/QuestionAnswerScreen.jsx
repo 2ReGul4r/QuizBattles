@@ -1,6 +1,5 @@
 import QuestionScreen from "./QuestionScreen";
 import AnswerScreen from "./AnswerScreen";
-import Buzzer from "./Buzzer";
 import { useGameContext } from "../contexts/GameContext";
 import { useSocketContext } from "../contexts/SocketContext";
 import { useUser } from "../contexts/UserContext";
@@ -16,18 +15,18 @@ const QuestionAnswerScreen = () => {
         const categoryIndex = index%gameState.gameState.options.quiz.categoryCount;
         const questionIndex = Math.floor(index/gameState.gameState.options.quiz.categoryCount);
         socket.emit("endQuestion", categoryIndex, questionIndex, activeRoom);
-    }
+    };
 
     const handleReveal = () => {
         const index = activeQuestionIndex;
         const categoryIndex = index%gameState.gameState.options.quiz.categoryCount;
         const questionIndex = Math.floor(index/gameState.gameState.options.quiz.categoryCount);
         socket.emit("toggleReveal", categoryIndex, questionIndex, activeRoom);
-    }
+    };
 
     const handlBackToBoard = () => {
         socket.emit("backToBoard", activeRoom);
-    }
+    };
 
     if (!isConnected) {
         return (
@@ -52,21 +51,6 @@ const QuestionAnswerScreen = () => {
             {!!Object.keys(gameState.activeQuestion).length && (<QuestionScreen/>)}
             {!!Object.keys(gameState.activeAnswer).length && (<AnswerScreen/>)}
 
-            {/*USER CONTROLS */}
-            {userState.userID !== gameState.host.userID && (
-                <div className="card bg-base-100 shadow-xl items-center text-center flex-grow basis-full p-8 gap-8">
-                    <div className="card-body">
-                        {gameState.activeQuestion.questionType === "buzzer" && (<Buzzer/>)}
-                        {gameState.activeQuestion.questionType === "guess" && (
-                            <input type="text" placeholder="Answer" className="input input-bordered w-full" onInput={updateInput} />
-                        )}
-                    </div>
-                    <div className="card-actions">
-                        <button className="btn btn-error">Skip</button>
-                    </div>
-                </div>
-            )}
-
             {/* HOST CONTROLS */}
             {userState.userID === gameState.host.userID && (
                 <div className="card bg-base-100 shadow-xl items-center text-center flex-grow basis-full p-8 gap-8">
@@ -80,6 +64,6 @@ const QuestionAnswerScreen = () => {
             )}
         </div>
     )
-}
+};
 
 export default QuestionAnswerScreen

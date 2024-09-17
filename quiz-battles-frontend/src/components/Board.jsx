@@ -55,12 +55,9 @@ const Board = () => {
             const questionIndex = Math.floor(index/gameState.gameState.options.quiz.categoryCount);
             setActiveQuestionIndex(index);
             socket.emit("revealQuestion", categoryIndex, questionIndex, activeRoom);
-
-        } else {
-            if (userState.userID !== gameState.activePlayer.userID) return
-            socket.emit("markQuestion", index, activeRoom);
         }
-        
+        if (userState.userID !== gameState.activePlayer.userID) return
+        socket.emit("markQuestion", index, activeRoom);
     };
 
     const getQuestionCursor = (index) => {

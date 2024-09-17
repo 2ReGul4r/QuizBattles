@@ -1,5 +1,4 @@
-import { isActiveQuizBattleHost, isUserInThisRoom, isHostOfRoom, getUserSocket, removePlayerFromRoom, getRoomState, mapRoomStateToGameState } from "../utils/quizbattleUtils.js";
-import { io } from "../socket/socket.js";
+import { isActiveQuizBattleHost, isUserInThisRoom, isHostOfRoom, getUserSocket, removePlayerFromRoom, sendUpdates } from "../utils/quizbattleUtils.js";
 
 export default (socket, userID, roomID, callback) => {
     if (!isActiveQuizBattleHost) {
@@ -20,9 +19,6 @@ export default (socket, userID, roomID, callback) => {
         return
     }
     removePlayerFromRoom(userSocket, userID, roomID, true, "Your were kicked from this game");
-
-    const roomState = getRoomState(roomID);
-    const gameState = mapRoomStateToGameState(roomState)
-    io.to(roomID).emit("gameStateUpdate", gameState);
+    sendUpdates(roomID);
     callback(true);
 }

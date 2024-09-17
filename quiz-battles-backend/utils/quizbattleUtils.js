@@ -9,6 +9,24 @@ const hostIDRoomIDMap = new Map();
 
 const maxPlayers = 12;
 
+export function buzzedBefore(userID, roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return
+    return roomState?.buzzeredPlayers?.some(playerObj => playerObj.userID === userID);
+};
+
+export function cleanUpActives(roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return
+    resetActiveAnswer(roomID);
+    resetActiveQuestion(roomID);
+    roomState.hasActiveQuestion = false;
+    roomState.activeBuzzer = null;
+    roomState.activeGuesses = {};
+    roomState.skippingPlayers = [];
+    roomState.buzzeredPlayers = [];
+};
+
 export function cleanUpRoom(roomID) {
     const roomState = getRoomState(roomID);
     if (!roomState) return
@@ -17,13 +35,19 @@ export function cleanUpRoom(roomID) {
         if (hostIDRoomIDMap.has(userID)) hostIDRoomIDMap.delete(userID);
     });
     delete quizBattleState[roomID];
-}
+};
 
 export function checkHasActiveQuestion(roomID) {
     const roomState = getRoomState(roomID);
     if (!roomState) return
     roomState.hasActiveQuestion = (!!Object.keys(roomState.activeQuestion).length || !!Object.keys(roomState.activeAnswer).length) || false;
-}
+};
+
+export function checkActiveQuestionType(roomID, questionType) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return false
+    return roomState.hasActiveQuestion.questionType === questionType
+};
 
 export async function createInitialRoomState(socket, quizbattleID) {
     const quizbattle = await getQuizBattleByID(quizbattleID);
@@ -34,11 +58,12 @@ export async function createInitialRoomState(socket, quizbattleID) {
         },
         players: {},
         quizbattle: createDeepCopy(quizbattle),
-        activePlayer: {index: 0, userID: undefined},
+        activePlayer: {index: 0, userID: null},
+        questionsAnsweredCount: 0,
         hasActiveQuestion: false,
         activeQuestion: {},
         activeAnswer: {},
-        activeBuzzer: "", //UserID
+        activeBuzzer: {}, // userID, username
         activeGuesses: {}, // key: UserID, value string guess
         skippingPlayers: [],
         buzzeredPlayers: [],
@@ -63,7 +88,7 @@ export function deleteRoom(roomID) {
         socket.emit("redirectToHome");
     });
     cleanUpRoom(roomID);
-}
+};
 
 export function doesRoomExist(roomID) {
     return io.sockets.adapter.rooms.has(roomID);
@@ -88,7 +113,7 @@ export function generateRandomString() {
 };
 
 export function getCurrentRoomOfUserID(userID) {
-    return userIDRoomIDMap.get(userID) || hostIDRoomIDMap.get(userID) || false;
+    return userIDRoomIDMap?.get(userID) || hostIDRoomIDMap?.get(userID) || false;
 };
 
 export function getRoomState(roomID) {
@@ -101,40 +126,43 @@ export function getUserSocket(userID, roomID) {
     if (!roomState) return false
     if (!isUserInThisRoom(userID, roomID)) return false
     const userSocketID = roomState.players[userID].socket;
-    return io.sockets.sockets.get(userSocketID) || false;
+    return io?.sockets?.sockets?.get(userSocketID) || false;
+};
+
+export function hasRoomActiveBuzzer(roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return false
+    return !!roomState?.activeBuzzer
 };
 
 export function hasRoomActiveQuestion(roomID) {
     const roomState = getRoomState(roomID);
     if (!roomState) return false
-    return !!roomState.hasActiveQuestion
-}
+    return !!roomState?.hasActiveQuestion
+};
 
 export function isActivePlayer(userID, roomID) {
     const roomState = getRoomState(roomID);
     if (!roomState) return false
-    return !!(roomState.activePlayer?.userID === userID)
-}
+    return !!(roomState?.activePlayer?.userID === userID)
+};
 
 export function isActiveQuizBattleHost(userID) {
-    return hostIDRoomIDMap.has(userID);
+    return hostIDRoomIDMap?.has(userID);
 };
 
 export function isHostOfRoom(userID, roomID) {
     const roomState = getRoomState(roomID);
     if (!roomState) return false
-    return roomState.host.userID === userID
+    return roomState?.host?.userID === userID
 };
 
 export function isRoomFull(roomID) {
-    return Object.keys(quizBattleState[roomID].players).length >= (maxPlayers - 1);
+    return Object.keys(quizBattleState[roomID]?.players).length >= (maxPlayers - 1);
 };
 
-export function isUserInARoom(socket, userID) {
-    const isInRoomMap = userIDRoomIDMap.has(userID);
-    //TODO. Check why socket.rooms.length is undefined
-    //const hasOtherRoomsThanSocket = socket.rooms.length > (socket.rooms.has(socket.id) ? 1 : 0);
-    return isInRoomMap //|| hasOtherRoomsThanSocket
+export function isUserInARoom(userID) {
+    return userIDRoomIDMap.has(userID);
 };
 
 export function isUserInThisRoom(userID, roomID) {
@@ -179,6 +207,7 @@ export function mapRoomStateToGameState(roomState) {
             categories: [...categories],
             options: createDeepCopy(roomState.quizbattle.options)
         },
+        questionsAnsweredCount: roomState.questionsAnsweredCount,
         hasActiveQuestion: roomState.hasActiveQuestion,
         activeQuestion: createDeepCopy(roomState.activeQuestion),
         activeAnswer: createDeepCopy(roomState.activeAnswer),
@@ -199,6 +228,17 @@ export function removePlayerFromRoom(socket, userID, roomID, sendError, errorMes
     socket.emit("redirectToHome");
 };
 
+export function sendUpdates(roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return
+    const hostSocketID = roomState?.host?.socket || undefined;
+    if (!hostSocketID) return
+    const hostSocket = io.sockets.sockets.get(hostSocketID);
+    hostSocket.emit("hostStateUpdate", roomState);
+    const gameState = mapRoomStateToGameState(roomState);
+    io.to(roomID).emit("gameStateUpdate", gameState);
+};
+
 export function setActiveAnswer(categoryIndex, questionIndex, roomID) {
     const roomState = getRoomState(roomID);
     if (!roomState) return false
@@ -206,8 +246,25 @@ export function setActiveAnswer(categoryIndex, questionIndex, roomID) {
         text: roomState?.quizbattle?.categories[categoryIndex]?.questions[questionIndex]?.answer?.text || "",
         picture: roomState?.quizbattle?.categories[categoryIndex]?.questions[questionIndex]?.answer?.picture || [],
         audio: roomState?.quizbattle?.categories[categoryIndex]?.questions[questionIndex]?.answer?.audio || [],
+        categoryIndex,
+        questionIndex
     };
-}
+};
+
+export function setActiveBuzzer(userID, username, roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return false
+    const isMultiBuzzer = roomState?.quizbattle?.options?.quiz?.multiBuzzer || false;
+    if (!isMultiBuzzer) {
+        roomState.buzzeredPlayers.push(userID);
+    }
+    roomState.activeBuzzer = { userID, username };
+    const roomBuzzerTimer = (roomState?.quizbattle?.options?.quiz?.buzzerAnswerTimer || 30) * 1000; // Convert seconds to ms
+    setTimeout(() => {
+        resetActiveBuzzer(roomID);
+        sendUpdates(roomID);
+    }, roomBuzzerTimer);
+};
 
 export function setActivePlayer(userID, roomID) {
     const roomState = getRoomState(roomID);
@@ -216,7 +273,7 @@ export function setActivePlayer(userID, roomID) {
     const userIndex = Object.keys(roomState.players).indexOf(userID);
     roomState.activePlayer = { index: userIndex, userID: userID };
     return true
-}
+};
 
 export function setActiveQuestion(categoryIndex, questionIndex, roomID) {
     const roomState = getRoomState(roomID);
@@ -227,8 +284,10 @@ export function setActiveQuestion(categoryIndex, questionIndex, roomID) {
         audio: roomState?.quizbattle?.categories[categoryIndex]?.questions[questionIndex]?.audio || [],
         worth: roomState?.quizbattle?.categories[categoryIndex]?.questions[questionIndex]?.worth || 0,
         questionType: roomState?.quizbattle?.categories[categoryIndex]?.questions[questionIndex]?.questionType || "buzzer",
+        categoryIndex,
+        questionIndex
     };
-}
+};
 
 export function setNextActivePlayer(roomState) {
     const playerIDs = Objects.keys(roomState.players);
@@ -243,11 +302,12 @@ export function setRoomState(roomID, roomState) {
     quizBattleState[roomID] = {...roomState};
 };
 
-export function setQuestionIsAnswered(categoryIndex, questionIndex, roomID, isAnswered) {
+export function setQuestionIsAnswered(categoryIndex, questionIndex, roomID) {
     const roomState = getRoomState(roomID);
     if (!roomState) return false
-    roomState.quizbattle.categories[categoryIndex].questions[questionIndex].isAnswered = isAnswered;
-}
+    roomState.quizbattle.categories[categoryIndex].questions[questionIndex].isAnswered = true;
+    roomState.questionsAnsweredCount++;
+};
 
 export function tryToReconnect(socket) {
     const roomID = getCurrentRoomOfUserID(socket.user.userID);
@@ -263,23 +323,27 @@ export function tryToReconnect(socket) {
     const isHost = isHostOfRoom(socket.user.userID, roomID);
     joinToRoom(socket, socket.user.userID, roomID, isHost);
     socket.emit("redirectToRoom", roomID, () => { 
-        const roomState = getRoomState(roomID);
-        const gameState = mapRoomStateToGameState(roomState)
-        io.to(roomID).emit("gameStateUpdate", gameState);
+        sendUpdates(roomID);
     });
+};
+
+export function resetActiveBuzzer(roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return false
+    roomState.activeBuzzer = null;
 };
 
 export function resetActiveAnswer(roomID) {
     const roomState = getRoomState(roomID);
     if (!roomState) return false
     roomState.activeAnswer = {};
-}
+};
 
 export function resetActiveQuestion(roomID) {
     const roomState = getRoomState(roomID);
     if (!roomState) return false
     roomState.activeQuestion = {};
-}
+};
 
 export function verifyJWT(token) {
     try {
@@ -292,7 +356,7 @@ export function verifyJWT(token) {
 
 function createDeepCopy(object) {
     return JSON.parse(JSON.stringify(object));
-}
+};
 
 async function getQuizBattleByID(quizbattleID) {
     const result = await QuizBattle.findById(quizbattleID).populate([

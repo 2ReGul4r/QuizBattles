@@ -1,5 +1,4 @@
-import { getRoomState, setQuestionIsAnswered, mapRoomStateToGameState, doesRoomExist, hasRoomActiveQuestion, isHostOfRoom, resetActiveQuestion, resetActiveAnswer, checkHasActiveQuestion } from "../utils/quizbattleUtils.js";
-import { io } from "../socket/socket.js";
+import { setQuestionIsAnswered, sendUpdates, doesRoomExist, hasRoomActiveQuestion, isHostOfRoom, cleanUpActives } from "../utils/quizbattleUtils.js";
 
 export default (socket, categoryIndex, questionIndex, roomID) => {
     if (!doesRoomExist(roomID)) {
@@ -14,11 +13,7 @@ export default (socket, categoryIndex, questionIndex, roomID) => {
         socket.emit("sendError", { error: "There is not an active question."});
         return
     }
-    resetActiveAnswer(roomID);
-    resetActiveQuestion(roomID);
-    checkHasActiveQuestion(roomID);
+    cleanUpActives(roomID);
     setQuestionIsAnswered(categoryIndex, questionIndex, roomID, true);
-    const roomState = getRoomState(roomID);
-    const gameState = mapRoomStateToGameState(roomState)
-    io.to(roomID).emit("gameStateUpdate", gameState);
-}
+    sendUpdates(roomID);
+};
