@@ -274,7 +274,7 @@ export function mapRoomStateToGameState(roomState) {
         gameState: {
             name: roomState.quizbattle.name,
             categories: [...categories],
-            options: createDeepCopy(roomState.quizbattle.options)
+            options: createDeepCopy(roomState.quizbattle.options),
         },
         questionsAnsweredCount: roomState.questionsAnsweredCount,
         hasActiveQuestion: roomState.hasActiveQuestion,
@@ -292,12 +292,14 @@ export function markBuzzerAsCorrect(roomID) {
     const roomState = getRoomState(roomID);
     if (!roomState) return
     const userID = roomState.activeBuzzer.userID;
+    const username = roomState.activeBuzzer.username;
     const scoreChange = roomState.activeQuestion.worth;
     changeScoreOfPlayer(userID, roomID, scoreChange);
     cancleActiveBuzzer(roomID);
     const categoryIndex = roomState?.activeQuestion?.categoryIndex;
     const questionIndex = roomState?.activeQuestion?.questionIndex;
     if (typeof categoryIndex !== "number" || typeof questionIndex !== "number") return false
+    roomState.quizbattle.categories[categoryIndex].questions[questionIndex].answeredFrom.push({userID, username});
     setActiveAnswer(categoryIndex, questionIndex, roomID);
     resetActiveQuestion(roomID);
 };
@@ -323,12 +325,17 @@ export function removePlayerFromRoom(socket, userID, roomID, sendError, errorMes
 export function sendUpdates(roomID) {
     const roomState = getRoomState(roomID);
     if (!roomState) return
+    const gameState = mapRoomStateToGameState(roomState);
+    io.to(roomID).emit("gameStateUpdate", gameState);
+};
+
+export function sendUpdatesToHost(roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return
     const hostSocketID = roomState?.host?.socket || undefined;
     if (!hostSocketID) return
     const hostSocket = io.sockets.sockets.get(hostSocketID);
     hostSocket.emit("hostStateUpdate", roomState);
-    const gameState = mapRoomStateToGameState(roomState);
-    io.to(roomID).emit("gameStateUpdate", gameState);
 };
 
 export function setActiveAnswer(categoryIndex, questionIndex, roomID) {

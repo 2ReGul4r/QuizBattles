@@ -14,6 +14,7 @@ const QuestionScreen = () => {
     useEffect(() => {
         socket.on("buzzerResults", (results) => {
             setLocalBuzzed(false);
+            console.log("res", results);
             setBuzzerResults(results);
         });
         socket.on("updateBuzzerTime", (newBuzzerTime) => {
@@ -122,9 +123,9 @@ const QuestionScreen = () => {
                             </span>
                             sec
                         </div>
-                        <h2 className="card-title">{`Buzzer was pressed by ${gameState.activeBuzzer.username}`}</h2>
+                        <h2 className="card-title text-xl text-primary">{`Buzzer was pressed by ${gameState.activeBuzzer.username}`}</h2>
                         {buzzerResults.slice(1).map(({userID, username, correctedBuzzTime}) => {
-                            <h3 key={userID} className="text-base">{`${username} pressed the buzzer ${correctedBuzzTime - gameState.activeBuzzer.correctedBuzzTime}ms too late...`}</h3>
+                            return (<h3 key={userID} className="text-sm text-error">{`${username} pressed the buzzer ${correctedBuzzTime - gameState.activeBuzzer.correctedBuzzTime}ms too late...`}</h3>)
                         })}
                     </div>
                     {userState.userID === gameState.host.userID && (

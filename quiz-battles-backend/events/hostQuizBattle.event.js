@@ -1,4 +1,4 @@
-import { createNewQuizBattleRoom, sendUpdates, setRoomState } from "../utils/quizbattleUtils.js";
+import { createNewQuizBattleRoom, sendUpdates, sendUpdatesToHost, setRoomState } from "../utils/quizbattleUtils.js";
 
 export default async (socket, quizbattleID, callback) => {
     const { roomID, newRoomState } = await createNewQuizBattleRoom(socket, quizbattleID);
@@ -8,5 +8,6 @@ export default async (socket, quizbattleID, callback) => {
 
     socket.on("hostNavigationComplete", () => {
         sendUpdates(roomID);
-    })
-}
+        sendUpdatesToHost(roomID);
+    });
+};

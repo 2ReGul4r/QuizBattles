@@ -4,7 +4,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHeadphones, faImage } from "@fortawesome/free-solid-svg-icons";
 import { useUser } from "../contexts/UserContext";
 
-
 const Board = () => {
     const { gameState, activeRoom, markedQuestion, setActiveQuestionIndex } = useGameContext();
     const { socket, isConnected } = useSocketContext();
@@ -14,12 +13,12 @@ const Board = () => {
         if (Object.keys(gameState).length <= 0) return undefined
         const category = gameState.gameState.categories[index % gameState.gameState.options.quiz.categoryCount];
         return category?.questions ? category.questions[Math.floor(index / gameState.gameState.options.quiz.categoryCount)] : undefined;
-    }
+    };
 
     const getWorthForQuestion = (index) => {
         const question = getQuestion(index);
         return question?.worth ? `${question.worth}$` : ""
-    }
+    };
 
     const hasQuestionPicture = (index) => {
         const question = getQuestion(index);
@@ -39,7 +38,7 @@ const Board = () => {
     const questionAnsweredBy = (index) => {
         const question = getQuestion(index);
         if (!question) return ""
-        if (Array.from(question.answeredFrom).length === 1 ){
+        if (Array.from(question.answeredFrom).length === 1 ) {
             return question?.answeredFrom[0]?.username || ""
         } else {
             return Array.from(question.answeredFrom).map(userObj => userObj.username.slice(0, 2)).join(" and ")
@@ -89,7 +88,7 @@ const Board = () => {
                         className={`flex flex-col flex-grow flex-shrink basis-auto p-6 ${getQuestionCursor(index)}`}
                         onClick={() => handleQuestionClick(index)}
                     >
-                        {isQuestionAnswered(index) && <div className="card-actions justify-start">{questionAnsweredBy(index)}</div>}
+                        {isQuestionAnswered(index) && <div className="absolute top-4 left-4">{questionAnsweredBy(index)}</div>}
                         <div className="card-title self-center text-2xl">{getWorthForQuestion(index)}</div>
                         <div className="card-actions">
                             {hasQuestionPicture(index) && <FontAwesomeIcon className="absolute bottom-4 left-4" icon={faImage} />}
