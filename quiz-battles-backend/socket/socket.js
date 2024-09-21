@@ -1,14 +1,13 @@
 import { Server } from "socket.io";
-import https from "https";
+import http from "http";
 import express from "express";
 //import { handleQuizBattleEvents } from "../events/quizbattle.events.js";
 import { handleQuizBattleEvents } from "../events/wrapper.events.js";
 import { cleanUpRoom } from "../utils/quizbattleUtils.js";
-import fs from "fs";
 
 const app = express();
 
-const server = https.createServer(app);
+const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
         origin: ["http://localhost:5173", "https://mylevel.eu", "https://www.mylevel.eu", "https://regul4r.com", "https://www.regul4r.com"],
