@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 5000;
 dotenv.config();
 
 app.use(cors({
-    origin: ["http://localhost:5173"],
+    origin: ["http://localhost:5173", "https://mylevel.eu", "https://www.mylevel.eu"],
     credentials: true
 }));
 

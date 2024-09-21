@@ -7,6 +7,8 @@ import { useNavigate } from "react-router-dom";
 
 const SocketContext = createContext();
 
+const serverURL = process?.env?.SERVER_URL || "http://localhost:5000/";
+
 export const SocketContextProvider = ({ children }) => {
 	const [socket, setSocket] = useState(null);
 	const [isConnected, setIsConnected] = useState(false);
@@ -16,7 +18,7 @@ export const SocketContextProvider = ({ children }) => {
 	useEffect(() => {
 		if (userState.userID) {
 			const token = Cookies.get("userjwt");
-			const socket = io("http://localhost:5000/", {
+			const socket = io(serverURL, {
 				auth: {token: token},
 			});
 
