@@ -1,7 +1,7 @@
 import axios from "axios";
 import toast from "react-hot-toast";
 
-const API_URL = process?.env?.API_URL || "http://localhost:5000/api";
+const API_URL = "https://mylevel.eu/api";//process?.env?.API_URL || "http://localhost:5000/api";
 
 export const createQuizBattle = async () => {
   const response = await axios.post(`${API_URL}/quizbattle/create`, {} , { withCredentials: true});
