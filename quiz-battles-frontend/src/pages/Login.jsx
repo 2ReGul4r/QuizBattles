@@ -46,12 +46,12 @@ const Login = () => {
               onChange={(e) => setInputs({ ...inputs, password: e.target.value })}
               className="input input-bordered w-full mb-4"
             />
+            <div className="card-actions items-center flex flex-col">
+              {/*<a className="btn-link btn-wide cursor-pointer text-center" onClick={clickForgot}>Forgot Password?</a>*/}
+              <a className="link link-primary text-center mb-4" onClick={clickSignUp}>Don"t have an account yet?</a>
+              <button className="btn btn-primary w-full" type="submit" onClick={handleSubmit}>Login</button>
+            </div>
           </form>
-          <div className="card-actions items-center flex flex-col">
-            {/*<a className="btn-link btn-wide cursor-pointer text-center" onClick={clickForgot}>Forgot Password?</a>*/}
-            <a className="link link-primary text-center mb-4" onClick={clickSignUp}>Don"t have an account yet?</a>
-            <button className="btn btn-primary w-full" type="submit" onClick={handleSubmit}>Login</button>
-          </div>
         </div>
       </div>
     </div>

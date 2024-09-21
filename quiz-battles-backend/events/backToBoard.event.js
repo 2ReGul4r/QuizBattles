@@ -1,4 +1,4 @@
-import { cleanUpActives, doesRoomExist, isHostOfRoom, sendUpdates } from "../utils/quizbattleUtils.js";
+import { cancleActiveBuzzer, cleanUpActives, doesRoomExist, isHostOfRoom, sendUpdates } from "../utils/quizbattleUtils.js";
 
 export default (socket, roomID) => {
     if (!doesRoomExist(roomID)) {
@@ -10,5 +10,6 @@ export default (socket, roomID) => {
         return
     }
     cleanUpActives(roomID);
+    cancleActiveBuzzer(roomID);
     sendUpdates(roomID);
-}
+};

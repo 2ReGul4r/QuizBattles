@@ -1,32 +1,60 @@
 import { useGameContext } from "../contexts/GameContext";
 import { useSocketContext } from "../contexts/SocketContext";
 import { useUser } from "../contexts/UserContext";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const QuestionScreen = () => {
     const { gameState, activeRoom, hostState } = useGameContext();
     const { socket } = useSocketContext();
     const { userState } = useUser();
+    const [localBuzzed, setLocalBuzzed] = useState(false);
+    const [buzzerTimer, setbuzzerTimer] = useState(0);
+    const [buzzerResults, setBuzzerResults] = useState([])
 
     useEffect(() => {
         socket.on("buzzerResults", (results) => {
-            //
+            setLocalBuzzed(false);
+            setBuzzerResults(results);
         });
+        socket.on("updateBuzzerTime", (newBuzzerTime) => {
+            setbuzzerTimer(newBuzzerTime);
+        })
         document.body.addEventListener("keypress", handleKeyPressEvent);
         return () => {
           document.body.removeEventListener("keypress", handleKeyPressEvent);
         }
-      }, [])
+    }, []);
+
+    useEffect(() => {
+        if (!Object.keys(gameState.activeBuzzer).length) {
+            setBuzzerResults([]);
+        }
+    }, [gameState.activeBuzzer]);
     
-      const handleKeyPressEvent = (event) => {
+    const handleKeyPressEvent = (event) => {
         if (event.code === "Space") {
             event.preventDefault();
             handleBuzzerPress();
         }
-      }
+    };
 
     const handleBuzzerPress = () => {
-        socket.emit("buzzerPress", activeRoom);
+        if (!!Object.keys(gameState.activeBuzzer).length) return
+        socket.emit("buzzerPress", activeRoom, () => {
+            setLocalBuzzed(true);
+        });
+    };
+
+    const handleSkipPress = () => {
+        socket.emit("skippingPress", activeRoom);
+    };
+
+    const handleCorrectAnswer = () => {
+        socket.emit("correctBuzzerAnswer", activeRoom);
+    };
+
+    const handleWrongAnswer = () => {
+        socket.emit("wrongBuzzerAnswer", activeRoom);
     };
 
     const getHostStateAnswerToQuestion = () => {
@@ -36,9 +64,9 @@ const QuestionScreen = () => {
     };
 
     return (
-        <div className="flex flex-col gap-8 flex-grow">
-            <div className="card bg-base-100 shadow-xl items-center text-center basis-full p-8 gap-8">
-            <h2 className="card-title text-2xl">Question</h2>
+        <div className="flex flex-col gap-4 flex-grow">
+            <div className={`card bg-base-100 shadow-xl items-center text-center basis-full p-4 gap-4 ${gameState?.activeBuzzer?.userID === userState.userID && "buzzer-success"}`}>
+            <div className="flex flex-row w-full justify-between"><h2 className="text-2xl">Buzzer</h2><h2 className="text-2xl">{`+${gameState.activeQuestion.worth}$/-${parseInt(gameState.activeQuestion.worth * gameState.gameState.options.money.lossOnWrongAnswer)}$`}</h2></div>
                 {gameState.activeQuestion.question && (<div className="font-semibold self-center text-4xl">{gameState.activeQuestion.question}</div>)}
                 {Array.from(gameState.activeQuestion.picture).map((pictureBase64, index) => {
                     return (
@@ -59,35 +87,58 @@ const QuestionScreen = () => {
                 })}
                 {Array.from(gameState.activeQuestion.audio).map((audioBase64, index) => {
                     return (
-                        <audio controls controlsList="nodownload noplaybackrate" key={index}>
+                        <audio controls controlsList="nodownload noplaybackrate" autoPlay key={index}>
                             <source src={audioBase64}/>
                             Your browser does not support the audio element.
                         </audio>
                     )
-
                 })}
             </div>
 
             {/*USER CONTROLS */}
-            {userState.userID !== gameState.host.userID && (
-                <div className="card bg-base-100 shadow-xl items-center text-center flex-grow basis-full p-8 gap-8">
-                    <div className="card-body">
+            {userState.userID !== gameState.host.userID && !Object.keys(gameState.activeBuzzer).length && gameState.hasActiveQuestion && (
+                <div className="card bg-base-100 shadow-xl items-center text-center flex-grow basis-full p-4 gap-4">
+                    <div className="card-actions">
                         {gameState.activeQuestion.questionType === "buzzer" && (
-                            <button className={`btn btn-circle h-64 w-64 ${!gameState.activeBuzzer ? "btn-success" : "btn-error" }`} onClick={handleBuzzerPress}>BUZZER</button>
+                            <button className={`btn h-8 w-64 ${!localBuzzed ? "btn-success" : "btn-warning" } ${gameState.buzzeredPlayers?.some(playerObj => playerObj.userID === userState.userID) && "btn-disabled"}`} onClick={handleBuzzerPress}>BUZZER</button>
                         )}
                         {gameState.activeQuestion.questionType === "guess" && (
                             <input type="text" placeholder="Answer" className="input input-bordered w-full" onInput={updateInput} />
                         )}
+                        {!gameState.buzzeredPlayers?.some(playerObj => playerObj.userID === userState.userID) && (
+                            <button className="btn btn-outline btn-error" onClick={handleSkipPress}>{Object.keys(gameState.skippingPlayers).includes(userState.userID) ? "Unskip" : "Skip" }</button>
+                        )}
                     </div>
-                    <div className="card-actions">
-                        <button className="btn btn-outline btn-error">Skip</button>
+                </div>
+            )}
+
+            {/* ACTIVE BUZZER */}
+            {!!Object.keys(gameState.activeBuzzer).length && (
+                <div className="card bg-base-100 shadow-xl items-center text-center flex-grow basis-full p-4 gap-4">
+                    <div className="card-body">
+                        <div className="flex flex-col">
+                            <span className="countdown font-mono text-5xl">
+                                <p style={{"--value": buzzerTimer}}></p>
+                            </span>
+                            sec
+                        </div>
+                        <h2 className="card-title">{`Buzzer was pressed by ${gameState.activeBuzzer.username}`}</h2>
+                        {buzzerResults.slice(1).map(({userID, username, correctedBuzzTime}) => {
+                            <h3 key={userID} className="text-base">{`${username} pressed the buzzer ${correctedBuzzTime - gameState.activeBuzzer.correctedBuzzTime}ms too late...`}</h3>
+                        })}
                     </div>
+                    {userState.userID === gameState.host.userID && (
+                        <div className="card-actions">
+                            <button className="btn btn-success" onClick={handleCorrectAnswer}>Correct answer</button>
+                            <button className="btn btn-error" onClick={handleWrongAnswer}>Wrong answer</button>
+                        </div>
+                    )}
                 </div>
             )}
 
             {/* ANSWER DISPLAY FOR HOST */}
             {userState.userID === gameState.host.userID && !!Object.keys(hostState).length && (
-                <div className="card bg-base-100 shadow-xl items-center text-center flex-grow basis-full p-8 gap-8">
+                <div className="card bg-base-100 shadow-xl items-center text-center flex-grow basis-full p-4 gap-4">
                     <h2 className="card-title text-2xl">Answer</h2>
                     {getHostStateAnswerToQuestion()?.text && (<div className="self-center text-xl">{getHostStateAnswerToQuestion().text}</div>)}
                     {Array.from(getHostStateAnswerToQuestion()?.picture || []).map((pictureBase64, index) => {
@@ -114,12 +165,11 @@ const QuestionScreen = () => {
                                 Your browser does not support the audio element.
                             </audio>
                         )
-
                     })}
                 </div>
             )}
         </div>
     )
-}
+};
 
 export default QuestionScreen

@@ -1,13 +1,32 @@
 import QuizBattle from "../models/quizbattle.model.js";
 import jwt from "jsonwebtoken";
 import { io } from "../socket/socket.js";
+import { increasePlayersWonGames, increasePlayersGamesPlayed, increasePlayersHostedGames, increasePlayersBattlesWon, increasePlayersBattlesPlayed, addPlayersTotalScore } from "../controllers/playerActions.controller.js";
 
 export const quizBattleState = {};
 
 const userIDRoomIDMap = new Map();
 const hostIDRoomIDMap = new Map();
+const roomIDBuzzerTimeoutMap = new Map();
+const roomIDBuzzerTimerIntervalMap = new Map();
 
-const maxPlayers = 12;
+const maxPlayers = 16;
+
+export function logData() {
+    console.log("quizBattleState", quizBattleState);
+    console.log("userIDRoomIDMap", userIDRoomIDMap);
+    console.log("hostIDRoomIDMap", hostIDRoomIDMap);
+    console.log("roomIDBuzzerTimeoutMap", roomIDBuzzerTimeoutMap);
+    console.log("roomIDBuzzerTimerIntervalMap", roomIDBuzzerTimerIntervalMap);
+};
+
+export function addToSkippingPlayers(userID, username, roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return
+    if (!isSkippingPlayer(userID, roomID)) {
+        roomState.skippingPlayers[userID] = { userID, username }
+    }
+};
 
 export function buzzedBefore(userID, roomID) {
     const roomState = getRoomState(roomID);
@@ -15,15 +34,35 @@ export function buzzedBefore(userID, roomID) {
     return roomState?.buzzeredPlayers?.some(playerObj => playerObj.userID === userID);
 };
 
+export function cancleActiveBuzzer(roomID) {
+    if (roomIDBuzzerTimeoutMap.has(roomID)) {
+        const timeoutID = roomIDBuzzerTimeoutMap.get(roomID);
+        clearTimeout(timeoutID);
+        roomIDBuzzerTimeoutMap.delete(roomID);
+    }
+    if (roomIDBuzzerTimerIntervalMap.has(roomID)) {
+        const timerIntervalID = roomIDBuzzerTimerIntervalMap.get(roomID);
+        clearInterval(timerIntervalID);
+        roomIDBuzzerTimerIntervalMap.delete(roomID);
+    }
+    resetActiveBuzzer(roomID);
+};
+
+export function changeScoreOfPlayer(userID, roomID, scoreChange) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return
+    roomState.score[userID].score += scoreChange;
+};
+
 export function cleanUpActives(roomID) {
     const roomState = getRoomState(roomID);
     if (!roomState) return
     resetActiveAnswer(roomID);
     resetActiveQuestion(roomID);
+    resetActiveBuzzer(roomID);
     roomState.hasActiveQuestion = false;
-    roomState.activeBuzzer = null;
     roomState.activeGuesses = {};
-    roomState.skippingPlayers = [];
+    roomState.skippingPlayers = {};
     roomState.buzzeredPlayers = [];
 };
 
@@ -32,21 +71,43 @@ export function cleanUpRoom(roomID) {
     if (!roomState) return
     Object.keys(roomState.players).forEach((userID) => {
         if (userIDRoomIDMap.has(userID)) userIDRoomIDMap.delete(userID);
-        if (hostIDRoomIDMap.has(userID)) hostIDRoomIDMap.delete(userID);
     });
+    if (hostIDRoomIDMap.has(roomState?.host?.userID)) hostIDRoomIDMap.delete(roomState.host.userID);
+    if (roomIDBuzzerTimeoutMap.has(roomID)) roomIDBuzzerTimeoutMap.delete(roomID);
+    if (roomIDBuzzerTimerIntervalMap.has(roomID)) roomIDBuzzerTimerIntervalMap.delete(roomID);
     delete quizBattleState[roomID];
-};
-
-export function checkHasActiveQuestion(roomID) {
-    const roomState = getRoomState(roomID);
-    if (!roomState) return
-    roomState.hasActiveQuestion = (!!Object.keys(roomState.activeQuestion).length || !!Object.keys(roomState.activeAnswer).length) || false;
 };
 
 export function checkActiveQuestionType(roomID, questionType) {
     const roomState = getRoomState(roomID);
     if (!roomState) return false
-    return roomState.hasActiveQuestion.questionType === questionType
+    return roomState.activeQuestion.questionType === questionType
+};
+
+export function checkForGameEnd(roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return false
+    const isGameOver = roomState.questionsAnsweredCount >= (roomState.quizbattle.options.quiz.categoryCount * roomState.quizbattle.options.quiz.questionsPerCategory)
+    if (!isGameOver) return
+    roomState.finalScore = Object.keys(roomState.score).map(key => ({
+        userID: key,
+        username:  roomState.score[key].username,
+        score: roomState.score[key].score,
+        money: roomState.score[key].money,
+    }));
+
+    roomState.finalScore.sort((a, b) => b.score - a.score);
+    handleEndStats(roomState.finalScore);
+    try {
+        increasePlayersHostedGames(roomState.host.userID);
+    } catch (error) {
+        console.log("There was an error in 'checkForGameEnd/increasePlayersHostedGames'", error.message);
+    }
+    setTimeout((roomID) => {
+        if (Object.keys(quizBattleState).includes(roomID)) {
+            cleanUpRoom(roomID);
+        }
+    }, (15 * 60 * 1000)); // DELETE ROOM AFTER 15 MINS AFTER GAME END IF STILL EXISTING
 };
 
 export async function createInitialRoomState(socket, quizbattleID) {
@@ -54,7 +115,8 @@ export async function createInitialRoomState(socket, quizbattleID) {
     const roomState = {
         host: {
             socket: socket.id,
-            ...socket.user
+            userID: socket.user.userID,
+            username: socket.user.username,
         },
         players: {},
         quizbattle: createDeepCopy(quizbattle),
@@ -65,9 +127,10 @@ export async function createInitialRoomState(socket, quizbattleID) {
         activeAnswer: {},
         activeBuzzer: {}, // userID, username
         activeGuesses: {}, // key: UserID, value string guess
-        skippingPlayers: [],
+        skippingPlayers: {},
         buzzeredPlayers: [],
         score: {},
+        finalScore: [],
     }
     return roomState;
 };
@@ -95,16 +158,14 @@ export function doesRoomExist(roomID) {
 };
 
 export function generateRandomString() {
-    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"; // Großbuchstaben und Zahlen
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     const length = 5;
     const existingList = Object.keys(quizBattleState);
 
-    // Funktion zur Generierung eines zufälligen Strings
     const randomString = Array.from({ length }, () => 
         characters.charAt(Math.floor(Math.random() * characters.length))
     ).join('');
 
-    // Wenn der String bereits in der Liste ist, rekursiv aufrufen
     if (existingList.includes(randomString)) {
         return generateRandomString(existingList);
     }
@@ -132,7 +193,7 @@ export function getUserSocket(userID, roomID) {
 export function hasRoomActiveBuzzer(roomID) {
     const roomState = getRoomState(roomID);
     if (!roomState) return false
-    return !!roomState?.activeBuzzer
+    return !!Object.keys(roomState?.activeBuzzer).length
 };
 
 export function hasRoomActiveQuestion(roomID) {
@@ -158,7 +219,15 @@ export function isHostOfRoom(userID, roomID) {
 };
 
 export function isRoomFull(roomID) {
-    return Object.keys(quizBattleState[roomID]?.players).length >= (maxPlayers - 1);
+    const roomState = getRoomState(roomID);
+    if (!roomState) return false
+    return Object.keys(roomState.players).length >= (maxPlayers - 1);
+};
+
+export function isSkippingPlayer(userID, roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return false
+    return !!Object.keys(roomState?.skippingPlayers || {}).includes(userID)
 };
 
 export function isUserInARoom(userID) {
@@ -187,8 +256,8 @@ export function joinToRoom(socket, userID, roomID, isHost) {
         if (Object.keys(roomState.players).includes(userID)) {
             roomState.players[userID].socket = socket.id; 
         } else {
-            roomState.players[userID] = { socket: socket.id, ...socket.user };
-            roomState.score[userID] = {score: 0, money: startMoney};
+            roomState.players[userID] = { socket: socket.id, userID: socket.user.userID, username: socket.user.username };
+            roomState.score[userID] = {score: 0, money: startMoney, username: socket.user.username};
         }
     }
 };
@@ -211,12 +280,35 @@ export function mapRoomStateToGameState(roomState) {
         hasActiveQuestion: roomState.hasActiveQuestion,
         activeQuestion: createDeepCopy(roomState.activeQuestion),
         activeAnswer: createDeepCopy(roomState.activeAnswer),
-        activeBuzzer: roomState.activeBuzzer,
-        activeGuesses: createDeepCopy(roomState.activeGuesses),
+        activeBuzzer: createDeepCopy(roomState.activeBuzzer),
         skippingPlayers: createDeepCopy(roomState.skippingPlayers),
         buzzeredPlayers: createDeepCopy(roomState.buzzeredPlayers),
         score: createDeepCopy(roomState.score),
+        finalScore: createDeepCopy(roomState.finalScore),
     }
+};
+
+export function markBuzzerAsCorrect(roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return
+    const userID = roomState.activeBuzzer.userID;
+    const scoreChange = roomState.activeQuestion.worth;
+    changeScoreOfPlayer(userID, roomID, scoreChange);
+    cancleActiveBuzzer(roomID);
+    const categoryIndex = roomState?.activeQuestion?.categoryIndex;
+    const questionIndex = roomState?.activeQuestion?.questionIndex;
+    if (typeof categoryIndex !== "number" || typeof questionIndex !== "number") return false
+    setActiveAnswer(categoryIndex, questionIndex, roomID);
+    resetActiveQuestion(roomID);
+};
+
+export function markBuzzerAsWrong(roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return
+    const userID = roomState.activeBuzzer.userID;
+    const scoreChange = parseInt((roomState.activeQuestion.worth) * (roomState.quizbattle.options.money.lossOnWrongAnswer || 0.5)) * -1;
+    changeScoreOfPlayer(userID, roomID, scoreChange);
+    cancleActiveBuzzer(roomID);
 };
 
 export function removePlayerFromRoom(socket, userID, roomID, sendError, errorMessage) {
@@ -251,19 +343,29 @@ export function setActiveAnswer(categoryIndex, questionIndex, roomID) {
     };
 };
 
-export function setActiveBuzzer(userID, username, roomID) {
+export function setActiveBuzzer(userID, username, correctedBuzzTime, roomID) {
     const roomState = getRoomState(roomID);
     if (!roomState) return false
     const isMultiBuzzer = roomState?.quizbattle?.options?.quiz?.multiBuzzer || false;
     if (!isMultiBuzzer) {
-        roomState.buzzeredPlayers.push(userID);
+        roomState.buzzeredPlayers.push({ userID, username, correctedBuzzTime });
     }
-    roomState.activeBuzzer = { userID, username };
-    const roomBuzzerTimer = (roomState?.quizbattle?.options?.quiz?.buzzerAnswerTimer || 30) * 1000; // Convert seconds to ms
-    setTimeout(() => {
+    roomState.activeBuzzer = { userID, username, correctedBuzzTime };
+    const roomBuzzerTimerStart = (roomState?.quizbattle?.options?.quiz?.buzzerAnswerTimer || 30) * 1000; // Convert seconds to ms
+    let roomBuzzerTimer = (roomBuzzerTimerStart / 1000);
+    io.to(roomID).emit("updateBuzzerTime", roomBuzzerTimer);
+    const intervalID = setInterval(() => {
+        roomBuzzerTimer--;
+        io.to(roomID).emit("updateBuzzerTime", roomBuzzerTimer);
+    }, 1000);
+    const timeoutID = setTimeout(() => {
+        markBuzzerAsWrong(roomID);
         resetActiveBuzzer(roomID);
         sendUpdates(roomID);
-    }, roomBuzzerTimer);
+        clearInterval(intervalID);
+    }, roomBuzzerTimerStart + 1000); // One second more for server ping response(timeout and intervals arent 100% accurate aswell)
+    roomIDBuzzerTimerIntervalMap.set(roomID, intervalID);
+    roomIDBuzzerTimeoutMap.set(roomID, timeoutID);
 };
 
 export function setActivePlayer(userID, roomID) {
@@ -289,24 +391,37 @@ export function setActiveQuestion(categoryIndex, questionIndex, roomID) {
     };
 };
 
-export function setNextActivePlayer(roomState) {
-    const playerIDs = Objects.keys(roomState.players);
+export function setNextActivePlayer(roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return false
+    const playerIDs = Object.keys(roomState.players);
     const playerCount = playerIDs.length;
     const currentActivePlayerIndex = roomState.activePlayer.index;
-    const nextActivePlayerIndex = (currentActivePlayerIndex + 1) % (playerCount - 1);
+    const nextActivePlayerIndex = (currentActivePlayerIndex + 1) % (playerCount);
     const nextActivePlayerUserID = Object.keys(roomState.players)[nextActivePlayerIndex];
     roomState.activePlayer = {index: nextActivePlayerIndex, userID: nextActivePlayerUserID};
+};
+
+export function setHasActiveQuestion(roomID, newValue) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return false
+    roomState.hasActiveQuestion = newValue;
 };
 
 export function setRoomState(roomID, roomState) {
     quizBattleState[roomID] = {...roomState};
 };
 
-export function setQuestionIsAnswered(categoryIndex, questionIndex, roomID) {
+export function setQuestionIsAnswered(roomID) {
     const roomState = getRoomState(roomID);
     if (!roomState) return false
+    const categoryIndex = roomState?.activeQuestion?.categoryIndex ?? roomState?.activeAnswer?.categoryIndex;
+    const questionIndex = roomState?.activeQuestion?.questionIndex ?? roomState?.activeAnswer?.questionIndex;
+    if (typeof categoryIndex !== 'number' || typeof questionIndex !== 'number') return false
     roomState.quizbattle.categories[categoryIndex].questions[questionIndex].isAnswered = true;
     roomState.questionsAnsweredCount++;
+    cleanUpActives(roomID);
+    checkForGameEnd(roomID);
 };
 
 export function tryToReconnect(socket) {
@@ -327,10 +442,16 @@ export function tryToReconnect(socket) {
     });
 };
 
+export function removeFromSkippingPlayers(userID, roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return false
+    if (isSkippingPlayer(userID, roomID)) delete roomState.skippingPlayers[userID];
+};
+
 export function resetActiveBuzzer(roomID) {
     const roomState = getRoomState(roomID);
     if (!roomState) return false
-    roomState.activeBuzzer = null;
+    roomState.activeBuzzer = {};
 };
 
 export function resetActiveAnswer(roomID) {
@@ -364,6 +485,18 @@ async function getQuizBattleByID(quizbattleID) {
       { path: 'owner', model: 'User' }
     ]);
     return result
+};
+
+function handleEndStats(finalScore) {
+    try {
+        increasePlayersWonGames(finalScore[0].userID);
+        finalScore.forEach((playerObj) => {
+            increasePlayersGamesPlayed(playerObj.userID);
+            addPlayersTotalScore(playerObj.userID, playerObj.score);
+        });
+    } catch (error) {
+        console.log("There was an error in 'handleEndStats'", error.message);
+    }
 };
 
 function mapCategoriesForGameState(quizBattle) {

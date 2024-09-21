@@ -1,4 +1,4 @@
-import { sendUpdates, doesRoomExist, hasRoomActiveQuestion, isHostOfRoom, setActiveQuestion, resetActiveAnswer, checkHasActiveQuestion } from "../utils/quizbattleUtils.js";
+import { sendUpdates, doesRoomExist, hasRoomActiveQuestion, isHostOfRoom, setActiveQuestion, resetActiveAnswer, setHasActiveQuestion } from "../utils/quizbattleUtils.js";
 import { io } from "../socket/socket.js";
 
 export default (socket, categoryIndex, questionIndex, roomID) => {
@@ -14,9 +14,9 @@ export default (socket, categoryIndex, questionIndex, roomID) => {
         socket.emit("sendError", { error: "There is already an active question."});
         return
     }
+    setHasActiveQuestion(roomID, true);
     resetActiveAnswer(roomID);
     setActiveQuestion(categoryIndex, questionIndex, roomID);
-    checkHasActiveQuestion(roomID);
     sendUpdates(roomID);
     io.to(roomID).emit("markedQuestion", -1);
 }

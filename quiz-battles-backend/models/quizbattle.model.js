@@ -5,7 +5,7 @@ const answerSchema = new Schema({
     text: String,
     picture: [String],
     audio: [String]
-});
+}, { _id: false });
 
 const questionSchema = new Schema({
     question: String,
@@ -35,15 +35,14 @@ const questionSchema = new Schema({
         default: 0,
         min: 0
     }
-});
+}, { _id: false });
 
 const categorySchema = new Schema({
     title: {
         type: String,
-        required: true
     },
     questions: [questionSchema],
-});
+}, { _id: false });
 
 const rarityChancesSchema = new Schema({
     common: {
@@ -66,7 +65,7 @@ const rarityChancesSchema = new Schema({
         type: Number,
         default: 5
     }
-});
+}, { _id: false });
 
 const quizBattleSchema = new Schema({
     owner: {

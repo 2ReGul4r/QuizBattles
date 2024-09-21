@@ -42,6 +42,7 @@ const SignUp = () => {
               placeholder="Username"
               autoComplete="username"
               value={inputs.username}
+              maxLength={12}
               onChange={(e) => setInputs({ ...inputs, username: e.target.value })}
               className="input input-bordered w-full mb-4"
             />

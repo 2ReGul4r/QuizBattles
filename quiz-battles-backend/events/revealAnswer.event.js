@@ -1,4 +1,4 @@
-import { sendUpdates, doesRoomExist, hasRoomActiveQuestion, isHostOfRoom, resetActiveQuestion, setActiveAnswer, checkHasActiveQuestion } from "../utils/quizbattleUtils.js";
+import { sendUpdates, doesRoomExist, isHostOfRoom, resetActiveQuestion, setActiveAnswer } from "../utils/quizbattleUtils.js";
 
 export default (socket, categoryIndex, questionIndex, roomID) => {
     if (!doesRoomExist(roomID)) {
@@ -9,12 +9,7 @@ export default (socket, categoryIndex, questionIndex, roomID) => {
         socket.emit("sendError", { error: "You are not the host of this game."});
         return
     }
-    if (!hasRoomActiveQuestion(roomID)) {
-        socket.emit("sendError", { error: "There is not an active question."});
-        return
-    }
     resetActiveQuestion(roomID);
     setActiveAnswer(categoryIndex, questionIndex, roomID);
-    checkHasActiveQuestion(roomID);
     sendUpdates(roomID);
-}
+};

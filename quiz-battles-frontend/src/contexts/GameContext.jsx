@@ -27,7 +27,6 @@ export const GameContextProvider = ({ children, roomID, roomState }) => {
         });
         socket.on("gameStateUpdate", (gameState) => {
             setGameState(gameState);
-            console.log(gameState);
         });
         socket.on("markedQuestion", (markedQuestionIndex) => {
             setMarkedQuestion(markedQuestionIndex);

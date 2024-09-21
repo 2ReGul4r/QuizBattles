@@ -16,6 +16,10 @@ export const signup = async (req, res) => {
             return res.status(400).json({error: "Password is too short! (8 characters minimum)"});
         }
 
+        if (username.length > 12 || username.length < 3) {
+            return res.status(400).json({error: "Usernames must be between 3 and 12 characters long"});
+        }
+
         if (!validator.isEmail(email)) {
             return res.status(400).json({error: "Email is not valid"});
         }

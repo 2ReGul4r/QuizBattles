@@ -9,6 +9,10 @@ import handleRevealAnswer from "./revealAnswer.event.js";
 import handleEndQuestion from "./endQuestion.event.js";
 import handleToggleReveal from "./toggleReveal.event.js";
 import handleBackToBoard from "./backToBoard.event.js";
+import handleBuzzerPress from "./buzzerPress.event.js";
+import handleSkippingPress from "./skippingPress.event.js";
+import handleMarkBuzzerCorrect from "./correctBuzzerAnswer.event.js";
+import handleMarkBuzzerWrong from "./wrongBuzzerAnswer.event.js";
 
 import { verifyJWT, tryToReconnect } from "../utils/quizbattleUtils.js";
 
@@ -34,8 +38,12 @@ export const handleQuizBattleEvents = (socket) => {
         socket.on("revealQuestion", (categoryIndex, questionIndex, roomID) => handleRevealQuestion(socket, categoryIndex, questionIndex, roomID));
         socket.on("revealAnswer", (categoryIndex, questionIndex, roomID) => handleRevealAnswer(socket, categoryIndex, questionIndex, roomID));
         socket.on("toggleReveal", (categoryIndex, questionIndex, roomID) => handleToggleReveal(socket, categoryIndex, questionIndex, roomID));
-        socket.on("endQuestion", (categoryIndex, questionIndex, roomID) => handleEndQuestion(socket, categoryIndex, questionIndex, roomID));
-        socket.on("backToBoard", (roomID) => handleBackToBoard(socket, roomID))
+        socket.on("endQuestion", (roomID) => handleEndQuestion(socket, roomID));
+        socket.on("backToBoard", (roomID) => handleBackToBoard(socket, roomID));
+        socket.on("buzzerPress", (roomID, callback) => handleBuzzerPress(socket, roomID, callback));
+        socket.on("correctBuzzerAnswer", (roomID) => handleMarkBuzzerCorrect(socket, roomID));
+        socket.on("wrongBuzzerAnswer", (roomID) => handleMarkBuzzerWrong(socket, roomID));
+        socket.on("skippingPress", (roomID) => handleSkippingPress(socket, roomID));
         socket.on("tryToReconnect", () => tryToReconnect(socket));
     });
 };

@@ -69,7 +69,7 @@ const Board = () => {
         return "cursor-default"
     }
 
-    if (Object.keys(gameState).length <= 0) {
+    if (!Object.keys(gameState).length) {
         return <div>Loading...</div>
     }
     return (
@@ -84,7 +84,7 @@ const Board = () => {
             {Array.from(Array((gameState.gameState.options.quiz.categoryCount * gameState.gameState.options.quiz.questionsPerCategory)).keys()).map((value, index) => (
                 <div 
                     key={`${index%gameState.gameState.options.quiz.categoryCount}-${Math.floor(index/gameState.gameState.options.quiz.categoryCount)}`} 
-                    className={`card ${isQuestionAnswered(index) ? "bg-slate-900 opacity-25" : "bg-base-100"} ${markedQuestion === index && !isQuestionAnswered(index) ? "marked-question-border" : ""}`}
+                    className={`card ${isQuestionAnswered(index) ? "bg-slate-900 opacity-25" : "bg-base-100"} ${markedQuestion === index && !isQuestionAnswered(index) && "marked-question-border"}`}
                 >
                     <div 
                         className={`flex flex-col flex-grow flex-shrink basis-auto p-6 ${getQuestionCursor(index)}`}

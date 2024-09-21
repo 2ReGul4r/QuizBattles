@@ -20,6 +20,30 @@ const userSchema = new mongoose.Schema({
     isAdmin: {
         type: Boolean,
         required: true
+    },
+    wonGames: {
+        type: Number,
+        default: 0
+    },
+    gamesPlayed: {
+        type: Number,
+        default: 0
+    },
+    battlesWon: {
+        type: Number,
+        default: 0
+    },
+    battlesPlayed: {
+        type: Number,
+        default: 0
+    },
+    totalScore: {
+        type: Number,
+        default: 0
+    },
+    hostedGames: {
+        type: Number,
+        default: 0
     }
 });
 

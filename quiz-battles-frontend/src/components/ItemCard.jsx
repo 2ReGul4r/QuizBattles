@@ -3,7 +3,7 @@ import { faHeart, faHandFist, faGaugeHigh, faClover, faShieldHalved, faBullseye,
 
 const ItemCard = (item) => {
     return (
-        <div className="card lg:card-normal bg-base-100 max-w-128 shadow-xl item-card text-black">
+        <div className="card lg:card-normal bg-base-100 max-w-128 shadow-xl text-black">
             <figure>
                 {!item.picture.data
                     ? <div className="skeleton m-4 h-64 w-64"></div>

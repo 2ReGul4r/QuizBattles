@@ -8,7 +8,7 @@ function getUserData(cookie) {
     }
     const decodedToken = jwt.verify(cookie, process.env.JWT_SECRET);
     return decodedToken;
-}
+};
 
 export const createQuizBattle = async (req, res) => {
     try {
@@ -27,7 +27,7 @@ export const createQuizBattle = async (req, res) => {
         console.log("Error in createQuizBattle controller", error.message);
         res.status(500).json({error: "Internal Server Error"});
     }
-} 
+};
 
 export const saveQuizBattle = async (req, res) => {
     try {
@@ -39,6 +39,17 @@ export const saveQuizBattle = async (req, res) => {
         if (state.owner !== userID) {
             return res.status(400).json({error: "This is not your QuizBattle."});
         }
+        if (state.categories) {
+            state.categories.forEach(category => {
+                if (category.questions) {
+                    category.questions.forEach(question => {
+                        if (!["buzzer", "guess"].includes(question.questionType)) {
+                            question.questionType = "buzzer";
+                        }
+                    });
+                }
+            });
+        }
         const result = await QuizBattle.findOneAndUpdate({ _id: state._id, owner: userID }, state);
         if (result) {
             res.status(201).json(result)
@@ -47,7 +58,7 @@ export const saveQuizBattle = async (req, res) => {
         console.log("Error in saveQuizBattle controller", error.message);
         res.status(500).json({error: "Internal Server Error"});
     }
-}
+};
 
 export const getQuizBattles = async (req, res) => {
     try {
@@ -85,7 +96,7 @@ export const readQuizBattle = async (req, res) => {
         console.log("Error in readQuizBattle controller", error.message);
         res.status(500).json({ error: "Internal Server Error" });
     }
-}
+};
 
 export const deleteQuizBattle = async (req, res) => {
     try {
@@ -105,4 +116,4 @@ export const deleteQuizBattle = async (req, res) => {
         res.status(500).json({ error: "Internal Server Error" });
     }
     
-}
+};
