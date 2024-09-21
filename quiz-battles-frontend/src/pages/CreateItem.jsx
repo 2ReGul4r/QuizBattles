@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 const rarityCSSClasses = ["rarity-Common", "rarity-Uncommon", "rarity-Rare", "rarity-Epic", "rarity-Legendary"]
 

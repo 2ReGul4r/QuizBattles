@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { getQuizBattles } from "../services/quizbattles.service.jsx";
 import { useNavigate } from "react-router-dom";

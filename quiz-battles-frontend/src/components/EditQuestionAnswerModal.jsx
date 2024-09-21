@@ -1,11 +1,11 @@
-import React, {useState, useContext, useEffect} from "react";
+import {useState, useContext, useEffect} from "react";
 import { QuizBattleContext } from "../contexts/CreateQuizBattleContext";
+import PropTypes from "prop-types";
 
-const EditQuestionAnswerModal = (props) => {
+const EditQuestionAnswerModal = ({modalIndex, categoryIndex, questionIndex}) => {
     const { state, dispatch } = useContext(QuizBattleContext);
     const [question, setQuestion] = useState({});
     const [answer, setAnswer] = useState({});
-    const {modalIndex, categoryIndex, questionIndex} = props;
 
     useEffect(() => {
         const loadQuestionData = () => {
@@ -31,7 +31,7 @@ const EditQuestionAnswerModal = (props) => {
         };
 
         loadQuestionData();
-    }, [state]);
+    }, [state, categoryIndex, questionIndex]);
     
     const setQuestionOption = (option, newValue) => {
         setQuestion({...question, [option]: newValue});
@@ -106,7 +106,7 @@ const EditQuestionAnswerModal = (props) => {
     }
 
     return (
-        <dialog id={`modal-${modalIndex}`} className="modal">
+        <dialog id={`modal-${modalIndex}`} className="modal overflow-y-auto">
             <div className="flex flex-col w-9/12 hero bg-base-300 rounded-lg p-8">
                 <div className="flex flex-row gap-8 w-full">
                     <div className="card bg-base-100 w-full flex-grow">
@@ -187,5 +187,11 @@ const EditQuestionAnswerModal = (props) => {
         </dialog>
     )
 }
+
+EditQuestionAnswerModal.propTypes = {
+    modalIndex: PropTypes.number,
+    categoryIndex: PropTypes.number,
+    questionIndex: PropTypes.number
+};
 
 export default EditQuestionAnswerModal

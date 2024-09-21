@@ -23,7 +23,7 @@ const QuestionScreen = () => {
         return () => {
           document.body.removeEventListener("keypress", handleKeyPressEvent);
         }
-    }, []);
+    }, [socket]);
 
     useEffect(() => {
         if (!Object.keys(gameState.activeBuzzer).length) {
@@ -39,7 +39,7 @@ const QuestionScreen = () => {
     };
 
     const handleBuzzerPress = () => {
-        if (!!Object.keys(gameState.activeBuzzer).length) return
+        if (Object.keys(gameState.activeBuzzer).length) return
         socket.emit("buzzerPress", activeRoom, () => {
             setLocalBuzzed(true);
         });
@@ -103,7 +103,7 @@ const QuestionScreen = () => {
                             <button className={`btn h-8 w-64 ${!localBuzzed ? "btn-success" : "btn-warning" } ${gameState.buzzeredPlayers?.some(playerObj => playerObj.userID === userState.userID) && "btn-disabled"}`} onClick={handleBuzzerPress}>BUZZER</button>
                         )}
                         {gameState.activeQuestion.questionType === "guess" && (
-                            <input type="text" placeholder="Answer" className="input input-bordered w-full" onInput={updateInput} />
+                            <input type="text" placeholder="Answer" className="input input-bordered w-full" onInput={"updateInput"} />
                         )}
                         {!gameState.buzzeredPlayers?.some(playerObj => playerObj.userID === userState.userID) && (
                             <button className="btn btn-outline btn-error" onClick={handleSkipPress}>{Object.keys(gameState.skippingPlayers).includes(userState.userID) ? "Unskip" : "Skip" }</button>

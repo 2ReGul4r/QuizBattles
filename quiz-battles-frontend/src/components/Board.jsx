@@ -1,4 +1,3 @@
-import React, { useEffect } from "react";
 import { useGameContext } from "../contexts/GameContext";
 import { useSocketContext } from "../contexts/SocketContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";

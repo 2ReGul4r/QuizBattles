@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import { useContext } from "react";
 import { QuizBattleContext } from "../contexts/CreateQuizBattleContext";
 
 const CreateQuizOptions = () => {

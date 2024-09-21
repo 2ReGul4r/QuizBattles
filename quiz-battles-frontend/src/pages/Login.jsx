@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useUser } from "../contexts/UserContext";
 import { useNavigate } from "react-router-dom";
 
@@ -20,9 +20,9 @@ const Login = () => {
 		await handleLogin(inputs);
   }
 
-  const clickForgot = () => {
-    //TODO: Implement Forgot password!
-  }
+  // const clickForgot = () => {
+  //   //TODO: Implement Forgot password!
+  // }
 
   return (
     <div className="flex flex-col items-center">

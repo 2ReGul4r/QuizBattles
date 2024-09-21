@@ -1,5 +1,4 @@
 import { Outlet, Navigate } from "react-router-dom";
-import React from "react";
 import { useUser } from "../contexts/UserContext";
 
 const LoggedInRoutes = () => {

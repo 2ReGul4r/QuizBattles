@@ -1,5 +1,5 @@
 import { createQuizBattle, saveQuizBattle, readQuizBattle } from "../services/quizbattles.service.jsx";
-import React, { createContext, useReducer, useEffect, useRef } from "react";
+import { createContext, useReducer, useEffect, useRef } from "react";
 
 // Initial state basierend auf dem Schema
 const initialState = {};
@@ -36,7 +36,7 @@ function quizBattleReducer(state, action) {
       const emptyCategory = {title: "", questions: []};
       const missingCategories = parseInt(action.payload - state.categories.length);
       const updatedCategories = state.categories;
-      Array(missingCategories).keys().forEach((i) => {
+      Array(missingCategories).keys().forEach(() => {
         updatedCategories.push(emptyCategory);
       });
       return {

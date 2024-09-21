@@ -4,8 +4,9 @@ import CreateQuizOptions from "./CreateQuizOptions";
 import CreateBattleOptions from "./CreateBattleOptions";
 import CreateBoard from "./CreateBoard";
 import CreateMoneyOptions from "./CreateMoneyOptions";
+import PropTypes from "prop-types";
 
-const CreateQuizPagesWrapper = (props) => {
+const CreateQuizPagesWrapper = ({page}) => {
     const { state } = useContext(QuizBattleContext);
 
     if (Object.keys(state).length <= 0) {
@@ -19,12 +20,16 @@ const CreateQuizPagesWrapper = (props) => {
 
     return (
         <div>
-            {props.page === 1 && (<CreateQuizOptions/>)}
-            {props.page === 2 && (<CreateMoneyOptions/>)}
-            {props.page === 3 && (<CreateBattleOptions/>)}
-            {props.page === 4 && (<CreateBoard/>)}
+            {page === 1 && (<CreateQuizOptions/>)}
+            {page === 2 && (<CreateMoneyOptions/>)}
+            {page === 3 && (<CreateBattleOptions/>)}
+            {page === 4 && (<CreateBoard/>)}
         </div>
     )
 }
+
+CreateQuizPagesWrapper.propTypes = {
+    page: PropTypes.number,
+};
 
 export default CreateQuizPagesWrapper
