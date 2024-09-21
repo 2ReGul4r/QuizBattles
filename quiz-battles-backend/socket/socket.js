@@ -4,6 +4,7 @@ import express from "express";
 //import { handleQuizBattleEvents } from "../events/quizbattle.events.js";
 import { handleQuizBattleEvents } from "../events/wrapper.events.js";
 import { cleanUpRoom } from "../utils/quizbattleUtils.js";
+import fs from "fs";
 
 const app = express();
 
