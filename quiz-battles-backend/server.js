@@ -12,7 +12,8 @@ const PORT = process.env.PORT || 5000;
 dotenv.config();
 
 app.use(cors({
-    origin: ["http://localhost:5173", "https://mylevel.eu", "https://www.mylevel.eu"],
+    origin: ["http://localhost:5173", "https://mylevel.eu", "https://www.mylevel.eu", "https://regul4r.com", "https://www.regul4r.com"],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 }));
 

@@ -8,14 +8,11 @@ import fs from "fs";
 
 const app = express();
 
-const options = {
-    key: fs.readFileSync('../ssl/Lets_Encrypt_mylevel.eu.pem'),
-};
-
-const server = https.createServer(options, app);
+const server = https.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: ["http://localhost:5173", "https://mylevel.eu", "https://www.mylevel.eu"],
+        origin: ["http://localhost:5173", "https://mylevel.eu", "https://www.mylevel.eu", "https://regul4r.com", "https://www.regul4r.com"],
+        allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true
     }
 });
