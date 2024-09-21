@@ -23,7 +23,7 @@ const questionSchema = new Schema({
     audio: [String],
     worth: {
         type: Number,
-        default: 250
+        default: 500
     },
     questionType: {
         type: String,

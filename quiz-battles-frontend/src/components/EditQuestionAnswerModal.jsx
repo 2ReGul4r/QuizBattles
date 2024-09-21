@@ -19,7 +19,7 @@ const EditQuestionAnswerModal = ({modalIndex, categoryIndex, questionIndex}) => 
                 question: state?.categories[categoryIndex]?.questions[questionIndex]?.question || "",
                 picture: pictureBase64,
                 audio: audioBase64,
-                worth: state?.categories[categoryIndex]?.questions[questionIndex]?.worth || 150,
+                worth: state?.categories[categoryIndex]?.questions[questionIndex]?.worth || 500,
                 questionType: state?.categories[categoryIndex]?.questions[questionIndex]?.questionType || "buzzer",
                 isLockedForCount: state?.categories[categoryIndex]?.questions[questionIndex]?.isLockedForCount || 0
             });
@@ -96,6 +96,27 @@ const EditQuestionAnswerModal = ({modalIndex, categoryIndex, questionIndex}) => 
         document.getElementById(`modal-${modalIndex}`).close();
     };
 
+    const handleClear = (event) => {
+        event.preventDefault();
+        setQuestion({
+            question: "",
+            picture: [],
+            audio: [],
+            worth: 500,
+            questionType: "buzzer",
+            isLockedForCount: 0
+        });
+        setAnswer({
+            text: "",
+            picture: [],
+            audio: []
+        });
+    };
+
+    const getMaxLockCount = () => {
+        return (state.options.quiz.questionsPerCategory * state.options.quiz.categoryCount) - 1
+    };
+
     if (Object.keys(question).length <= 0 || Object.keys(answer).length <= 0) {
         return (
             <div className="flex flex-col items-center justify-center m-16">
@@ -146,7 +167,7 @@ const EditQuestionAnswerModal = ({modalIndex, categoryIndex, questionIndex}) => 
                             </select>
                             <label className="input input-bordered flex items-center gap-4 w-full">
                                 <span className="label-text font-bold">Rounds locked</span>
-                                <input type="number" className="grow spinner text-end no-spinner" value={question.isLockedForCount} min="0" onChange={(event) => setQuestionOption("isLockedForCount" , parseInt(event.target.value))}/>
+                                <input type="number" className="grow spinner text-end no-spinner" value={question.isLockedForCount} min="0" max={getMaxLockCount()} onChange={(event) => setQuestionOption("isLockedForCount" , parseInt(event.target.value))}/>
                             </label>
                         </div>
                     </div>
@@ -181,6 +202,7 @@ const EditQuestionAnswerModal = ({modalIndex, categoryIndex, questionIndex}) => 
                     <form method="dialog" className="w-full flex gap-8">
                         <button className="btn btn-primary flex-grow" onClick={handleSubmit}>Save</button>
                         <button className="btn btn-primary" onClick={handleClose}>Dismiss</button>
+                        <button className="btn btn-error" onClick={handleClear}>Clear</button>
                     </form>
                 </div>
             </div>

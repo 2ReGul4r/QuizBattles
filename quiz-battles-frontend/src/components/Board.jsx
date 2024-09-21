@@ -1,7 +1,7 @@
 import { useGameContext } from "../contexts/GameContext";
 import { useSocketContext } from "../contexts/SocketContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHeadphones, faImage } from "@fortawesome/free-solid-svg-icons";
+import { faHeadphones, faImage, faLock } from "@fortawesome/free-solid-svg-icons";
 import { useUser } from "../contexts/UserContext";
 
 const Board = () => {
@@ -35,6 +35,11 @@ const Board = () => {
         return !!question?.isAnswered
     };
 
+    const isQuestionLocked = (index) => {
+        const question = getQuestion(index);
+        return (question?.isLockedForCount > gameState.questionsAnsweredCount)
+    };
+
     const questionAnsweredBy = (index) => {
         const question = getQuestion(index);
         if (!question) return ""
@@ -48,6 +53,7 @@ const Board = () => {
     const handleQuestionClick = (index) => {
         if (!isConnected) return
         if (isQuestionAnswered(index)) return
+        if (isQuestionLocked(index)) return
         if (userState.userID === gameState.host.userID) {
             const categoryIndex = index%gameState.gameState.options.quiz.categoryCount;
             const questionIndex = Math.floor(index/gameState.gameState.options.quiz.categoryCount);
@@ -60,12 +66,13 @@ const Board = () => {
 
     const getQuestionCursor = (index) => {
         const question = getQuestion(index);
+        if (isQuestionLocked(index)) return "cursor-not-allowed"
         if (userState.userID === gameState.host.userID) return "cursor-pointer" 
         if (!question) return "cursor-default"
         if (question?.isAnswered) return "cursor-not-allowed"
         if (userState.userID === gameState?.activePlayer?.userID) return "cursor-pointer"
         return "cursor-default"
-    }
+    };
 
     if (!Object.keys(gameState).length) {
         return <div>Loading...</div>
@@ -89,7 +96,7 @@ const Board = () => {
                         onClick={() => handleQuestionClick(index)}
                     >
                         {isQuestionAnswered(index) && <div className="absolute top-4 left-4">{questionAnsweredBy(index)}</div>}
-                        <div className="card-title self-center text-2xl">{getWorthForQuestion(index)}</div>
+                        <div className="card-title self-center text-2xl">{isQuestionLocked(index) ? (<span className="flex flex-row gap-1"><FontAwesomeIcon className="self-center" icon={faLock}/><p>{getQuestion(index).isLockedForCount - gameState.questionsAnsweredCount}</p></span>) : getWorthForQuestion(index)}</div>
                         <div className="card-actions">
                             {hasQuestionPicture(index) && <FontAwesomeIcon className="absolute bottom-4 left-4" icon={faImage} />}
                             {hasQuestionAudio(index) && <FontAwesomeIcon className="absolute bottom-4 right-4" icon={faHeadphones} />}
@@ -99,6 +106,6 @@ const Board = () => {
             ))}
         </div>
     )
-}
+};
 
 export default Board
