@@ -43,10 +43,12 @@ const Board = () => {
     const questionAnsweredBy = (index) => {
         const question = getQuestion(index);
         if (!question) return ""
-        if (Array.from(question.answeredFrom).length === 1 ) {
+        if (Array.from(question.answeredFrom).length === 1) {
             return question?.answeredFrom[0]?.username || ""
+        } else if (Array.from(question.answeredFrom).length === 0) {
+            return ""
         } else {
-            return Array.from(question.answeredFrom).map(userObj => userObj.username.slice(0, 2)).join(" and ")
+            return `${Array.from(question.answeredFrom).length} players`
         }
     };
 

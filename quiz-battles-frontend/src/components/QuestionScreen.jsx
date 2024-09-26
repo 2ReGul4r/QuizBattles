@@ -14,7 +14,6 @@ const QuestionScreen = () => {
     useEffect(() => {
         socket.on("buzzerResults", (results) => {
             setLocalBuzzed(false);
-            console.log("res", results);
             setBuzzerResults(results);
         });
         socket.on("updateBuzzerTime", (newBuzzerTime) => {

@@ -13,6 +13,7 @@ import handleBuzzerPress from "./buzzerPress.event.js";
 import handleSkippingPress from "./skippingPress.event.js";
 import handleMarkBuzzerCorrect from "./correctBuzzerAnswer.event.js";
 import handleMarkBuzzerWrong from "./wrongBuzzerAnswer.event.js";
+import handleChangeScoreOfPlayer from "./changeScoreOfPlayer.event.js";
 
 import { verifyJWT, tryToReconnect } from "../utils/quizbattleUtils.js";
 
@@ -44,6 +45,7 @@ export const handleQuizBattleEvents = (socket) => {
         socket.on("correctBuzzerAnswer", (roomID) => handleMarkBuzzerCorrect(socket, roomID));
         socket.on("wrongBuzzerAnswer", (roomID) => handleMarkBuzzerWrong(socket, roomID));
         socket.on("skippingPress", (roomID) => handleSkippingPress(socket, roomID));
+        socket.on("changeScoreOfPlayer", (roomID, changeScoreState) => handleChangeScoreOfPlayer(socket, roomID, changeScoreState));
         socket.on("tryToReconnect", () => tryToReconnect(socket));
     });
 };

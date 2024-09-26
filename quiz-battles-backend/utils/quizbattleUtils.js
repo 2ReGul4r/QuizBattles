@@ -415,10 +415,6 @@ export function setHasActiveQuestion(roomID, newValue) {
     roomState.hasActiveQuestion = newValue;
 };
 
-export function setRoomState(roomID, roomState) {
-    quizBattleState[roomID] = {...roomState};
-};
-
 export function setQuestionIsAnswered(roomID) {
     const roomState = getRoomState(roomID);
     if (!roomState) return false
@@ -429,6 +425,16 @@ export function setQuestionIsAnswered(roomID) {
     roomState.questionsAnsweredCount++;
     cleanUpActives(roomID);
     checkForGameEnd(roomID);
+};
+
+export function setRoomState(roomID, roomState) {
+    quizBattleState[roomID] = {...roomState};
+};
+
+export function setScoreOfPlayer(userID, roomID, score) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return
+    roomState.score[userID].score = score;
 };
 
 export function tryToReconnect(socket) {
