@@ -43,7 +43,7 @@ export const saveQuizBattle = async (req, res) => {
             state.categories.forEach(category => {
                 if (category.questions) {
                     category.questions.forEach(question => {
-                        if (!["buzzer", "guess"].includes(question.questionType)) {
+                        if (question && !["buzzer", "guess"].includes(question?.questionType)) {
                             question.questionType = "buzzer";
                         }
                     });

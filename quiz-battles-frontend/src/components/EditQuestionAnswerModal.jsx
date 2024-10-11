@@ -1,6 +1,8 @@
 import {useState, useContext, useEffect} from "react";
 import { QuizBattleContext } from "../contexts/CreateQuizBattleContext";
 import PropTypes from "prop-types";
+import { uploadFile } from "../services/media.service";
+import toast from "react-hot-toast";
 
 const EditQuestionAnswerModal = ({modalIndex, categoryIndex, questionIndex}) => {
     const { state, dispatch } = useContext(QuizBattleContext);
@@ -9,7 +11,7 @@ const EditQuestionAnswerModal = ({modalIndex, categoryIndex, questionIndex}) => 
 
     useEffect(() => {
         const loadQuestionData = () => {
-            const pictureBase64 =state?.categories[categoryIndex]?.questions[questionIndex]?.picture || [];
+            const pictureBase64 = state?.categories[categoryIndex]?.questions[questionIndex]?.picture || [];
             const audioBase64 = state?.categories[categoryIndex]?.questions[questionIndex]?.audio || [];
 
             const answerPictureBase64 = state?.categories[categoryIndex]?.questions[questionIndex]?.answer?.picture || [];
@@ -23,6 +25,7 @@ const EditQuestionAnswerModal = ({modalIndex, categoryIndex, questionIndex}) => 
                 questionType: state?.categories[categoryIndex]?.questions[questionIndex]?.questionType || "buzzer",
                 isLockedForCount: state?.categories[categoryIndex]?.questions[questionIndex]?.isLockedForCount || 0
             });
+
             setAnswer({
                 text: state?.categories[categoryIndex]?.questions[questionIndex]?.answer?.text || "",
                 picture: answerPictureBase64,
@@ -43,12 +46,6 @@ const EditQuestionAnswerModal = ({modalIndex, categoryIndex, questionIndex}) => 
 
     const handleFileChange = (filetype, event, isAnswer) => {
         const files = event.target.files;
-
-        if (files.length > 3) {
-            alert("You can only upload up to 3 files.");
-            return
-        }
-        
         const fileReaders = [];
     
         Object.keys(files).forEach((i) => {
@@ -62,22 +59,32 @@ const EditQuestionAnswerModal = ({modalIndex, categoryIndex, questionIndex}) => 
                 reader.onerror = () => {
                     reject(reader.error);
                 };
-                reader.readAsDataURL(file);
+                reader.readAsArrayBuffer(file);
             });
             fileReaders.push(fileReaderPromise);
         });
-    
-        Promise.all(fileReaders).then((results) => {
-            if (isAnswer) {
-                setAnswer({
-                    ...answer,
-                    [filetype]: [...answer[filetype], ...results]
-                });
-            } else {
-                setQuestion({
-                    ...question,
-                    [filetype]: [...question[filetype], ...results]
-                });
+        
+        Promise.all(fileReaders).then(async (fileBuffers) => {
+            const formData = new FormData();
+            // Füge jede Datei einzeln zu FormData hinzu
+            formData.append("fileType", filetype);
+            fileBuffers.forEach((buffer, index) => {
+                const blob = new Blob([buffer], { type: files[index].type });
+                formData.append("file", blob, files[index].name); // Füge Blob als Datei hinzu
+            });
+            const fileURL = await uploadFile(formData);
+            if (filetype === 'picture') {
+                if (isAnswer) {
+                    setAnswerOption('picture', [...answer.picture, fileURL]);
+                } else {
+                    setQuestionOption('picture', [...question.picture, fileURL]);
+                }
+            } else if (filetype === 'audio') {
+                if (isAnswer) {
+                    setAnswerOption('audio', [...answer.audio, fileURL]);
+                } else {
+                    setQuestionOption('audio', [...question.audio, fileURL]);
+                }
             }
         }).catch(error => {
             console.error("Error reading files:", error);
@@ -137,7 +144,7 @@ const EditQuestionAnswerModal = ({modalIndex, categoryIndex, questionIndex}) => 
                             <div className="form-control w-full">
                                 <label className="label cursor-pointer">
                                     <span className="label-text pr-4">Pictures</span>
-                                    <input type="file" multiple className={`file-input w-full max-w-lg ${question.picture.length > 0 ? "file-input-success" : "file-input-bordered"}`} accept="image/*" onChange={(event) => handleFileChange("picture", event, false)}/>
+                                    <input type="file" className={`file-input w-full max-w-lg ${question.picture.length > 0 ? "file-input-success" : "file-input-bordered"}`} accept="image/*" onChange={(event) => handleFileChange("picture", event, false)}/>
                                 </label>
                                 <div className="flex gap-2 overflow-auto">
                                     {question.picture.map((data, index) => {
@@ -148,7 +155,7 @@ const EditQuestionAnswerModal = ({modalIndex, categoryIndex, questionIndex}) => 
                             <div className="form-control w-full">
                                 <label className="label cursor-pointer">
                                     <span className="label-text pr-4">Audios</span>
-                                    <input type="file" multiple className={`file-input w-full max-w-lg ${question.audio.length > 0 ? "file-input-success" : "file-input-bordered"}`} accept="audio/*" onChange={(event) => handleFileChange("audio", event, false)}/>
+                                    <input type="file" className={`file-input w-full max-w-lg ${question.audio.length > 0 ? "file-input-success" : "file-input-bordered"}`} accept="audio/*" onChange={(event) => handleFileChange("audio", event, false)}/>
                                 </label>
                                 <div>
                                     {question.audio.length > 0 && <p>{question.audio.length} audio files uploaded</p>}
@@ -178,7 +185,7 @@ const EditQuestionAnswerModal = ({modalIndex, categoryIndex, questionIndex}) => 
                             <div className="form-control w-full">
                                 <label className="label cursor-pointer">
                                     <span className="label-text pr-4">Pictures</span>
-                                    <input type="file" multiple className={`file-input w-full max-w-lg ${answer.picture.length > 0 ? "file-input-success" : "file-input-bordered"}`} accept="image/*" onChange={(event) => handleFileChange("picture", event, true)}/>
+                                    <input type="file" className={`file-input w-full max-w-lg ${answer.picture.length > 0 ? "file-input-success" : "file-input-bordered"}`} accept="image/*" onChange={(event) => handleFileChange("picture", event, true)}/>
                                 </label>
                                 <div className="flex gap-2 overflow-auto">
                                     {answer.picture.map((data, index) => {
@@ -189,7 +196,7 @@ const EditQuestionAnswerModal = ({modalIndex, categoryIndex, questionIndex}) => 
                             <div className="form-control w-full">
                                 <label className="label cursor-pointer">
                                     <span className="label-text pr-4">Audios</span>
-                                    <input type="file" multiple className={`file-input w-full max-w-lg ${answer.audio.length > 0 ? "file-input-success" : "file-input-bordered"}`} accept="audio/*" onChange={(event) => handleFileChange("audio", event, true)}/>
+                                    <input type="file" className={`file-input w-full max-w-lg ${answer.audio.length > 0 ? "file-input-success" : "file-input-bordered"}`} accept="audio/*" onChange={(event) => handleFileChange("audio", event, true)}/>
                                 </label>
                                 <div>
                                     {answer.audio.length > 0 && <p>{answer.audio.length} audio files uploaded</p>}
