@@ -1,1 +1,1 @@
-export const API_URL = "http://localhost:5000/api"//"https://mylevel.eu/api";//process?.env?.API_URL || "http://localhost:5000/api";
+export const API_URL = "https://mylevel.eu/api"; // "https://mylevel.eu/api" || "http://localhost:5000/api"
