@@ -6,7 +6,7 @@ const GameWrapper = () => {
     const location = useLocation();
     const { roomID = "", roomState = {} } = location.state || {};
     return (
-        <GameContextProvider roomID={roomID} roomState={roomState}>
+        <GameContextProvider roomID={roomID} initRoomState={roomState}>
             <Game />
         </GameContextProvider>
     )

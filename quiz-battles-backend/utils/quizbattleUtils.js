@@ -288,6 +288,12 @@ export function mapRoomStateToGameState(roomState) {
     }
 };
 
+export function mapRoomStateToHostState(roomState) {
+    return {
+        
+    }
+};
+
 export function markBuzzerAsCorrect(roomID) {
     const roomState = getRoomState(roomID);
     if (!roomState) return
@@ -322,11 +328,26 @@ export function removePlayerFromRoom(socket, userID, roomID, sendError, errorMes
     socket.emit("redirectToHome");
 };
 
+export function sendRoomStateToHost(roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return
+    const hostSocketID = roomState?.host?.socket || undefined;
+    if (!hostSocketID) return
+    const hostSocket = io.sockets.sockets.get(hostSocketID);
+    hostSocket.emit("setRoomState", roomState);
+};
+
 export function sendUpdates(roomID) {
     const roomState = getRoomState(roomID);
     if (!roomState) return
     const gameState = mapRoomStateToGameState(roomState);
     io.to(roomID).emit("gameStateUpdate", gameState);
+
+    const hostState = mapRoomStateToHostState(roomState);
+    const hostSocketID = roomState?.host?.socket || undefined;
+    if (!hostSocketID) return
+    const hostSocket = io.sockets.sockets.get(hostSocketID);
+    hostSocket.emit("hostStateUpdate", hostState);
 };
 
 export function sendUpdatesToHost(roomID) {
@@ -335,7 +356,7 @@ export function sendUpdatesToHost(roomID) {
     const hostSocketID = roomState?.host?.socket || undefined;
     if (!hostSocketID) return
     const hostSocket = io.sockets.sockets.get(hostSocketID);
-    hostSocket.emit("hostStateUpdate", roomState);
+    hostSocket.emit("hostStateUpdate", mapRoomStateToHostState(roomState));
 };
 
 export function setActiveAnswer(categoryIndex, questionIndex, roomID) {

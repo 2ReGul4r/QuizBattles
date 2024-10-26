@@ -1,0 +1,1 @@
+PORT=8800 MONGO_DB_URI="mongodb+srv://admin:sxKg8N2SN7fPQZ7UazJoKe7WLKMNaOUVEWeITiyEvxQoyaOJ@quizbattles-cluster.olr9e.mongodb.net/quiz-battles?retryWrites=true&w=majority&appName=QuizBattles-Cluster" JWT_SECRET="mJ3huG1vm70RAD66tpjYmc/xVNmEb4PGZtls7jMzdAc=" NODE_ENV="production" API_URL="https://mylevel.eu/api" SERVER_URL="https://mylevel.eu/" forever start server.js

@@ -4,7 +4,7 @@ import { useUser } from "../contexts/UserContext";
 import { useEffect, useState } from "react";
 
 const QuestionScreen = () => {
-    const { gameState, activeRoom, hostState } = useGameContext();
+    const { gameState, activeRoom, hostState, roomState } = useGameContext();
     const { socket } = useSocketContext();
     const { userState } = useUser();
     const [localBuzzed, setLocalBuzzed] = useState(false);
@@ -57,10 +57,10 @@ const QuestionScreen = () => {
         socket.emit("wrongBuzzerAnswer", activeRoom);
     };
 
-    const getHostStateAnswerToQuestion = () => {
-        const categoryIndex = hostState?.activeQuestion?.categoryIndex;
-        const questionIndex = hostState?.activeQuestion?.questionIndex;
-        return hostState?.quizbattle?.categories[categoryIndex]?.questions[questionIndex]?.answer
+    const getRoomStateAnswerToQuestion = () => {
+        const categoryIndex = gameState?.activeQuestion?.categoryIndex;
+        const questionIndex = gameState?.activeQuestion?.questionIndex;
+        return roomState?.quizbattle?.categories[categoryIndex]?.questions[questionIndex]?.answer
     };
 
     return (
@@ -137,11 +137,11 @@ const QuestionScreen = () => {
             )}
 
             {/* ANSWER DISPLAY FOR HOST */}
-            {userState.userID === gameState.host.userID && !!Object.keys(hostState).length && (
+            {userState.userID === gameState.host.userID && !!Object.keys(roomState).length && (
                 <div className="card bg-base-100 shadow-xl items-center text-center flex-grow basis-full p-4 gap-4">
                     <h2 className="card-title text-2xl">Answer</h2>
-                    {getHostStateAnswerToQuestion()?.text && (<div className="self-center text-xl">{getHostStateAnswerToQuestion().text}</div>)}
-                    {Array.from(getHostStateAnswerToQuestion()?.picture || []).map((pictureBase64, index) => {
+                    <div className="self-center text-xl">{getRoomStateAnswerToQuestion().text || "No answer found!"}</div>
+                    {Array.from(getRoomStateAnswerToQuestion()?.picture || []).map((pictureBase64, index) => {
                         return (
                             <div key={index}>
                                 <img className="h-64 cursor-zoom-in" src={pictureBase64} alt={`answer-picture-${index}`} onClick={()=>document.getElementById(`answer-picture-modal-${index}`).showModal()}/>
@@ -158,7 +158,7 @@ const QuestionScreen = () => {
                             </div>
                         )
                     })}
-                    {Array.from(getHostStateAnswerToQuestion()?.audio || []).map((audioBase64, index) => {
+                    {Array.from(getRoomStateAnswerToQuestion()?.audio || []).map((audioBase64, index) => {
                         return (
                             <audio controls controlsList="nodownload noplaybackrate" key={index}>
                                 <source src={audioBase64}/>

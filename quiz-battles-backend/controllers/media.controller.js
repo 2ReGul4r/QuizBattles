@@ -39,18 +39,26 @@ export const uploadFile = async (req, res) => {
         let fileUrl;
         if (fileType === "picture") {
             const compressedFilePath = path.join(imagesFolder, `${originalHash}.jpeg`);
-            await compressImage(file.path, compressedFilePath);
+            try {
+                await compressImage(file.path, compressedFilePath);
+            } catch (error) {
+                fs.createReadStream(file.path).pipe(fs.createWriteStream(compressedFilePath)); 
+            }
 
             await fs.unlinkSync(file.path);
 
-            fileUrl = `${req.protocol}://${req.get('host')}/uploads/images/${originalHash}.jpeg`;
+            fileUrl = `https://mylevel.eu/uploads/images/${originalHash}.jpeg`;
         } else if (fileType === "audio") {
             const compressedFilePath = path.join(audiosFolder, `${originalHash}.wav`);
-            await Promise.resolve(compressAudio(file.path, compressedFilePath));
+            try {
+                await Promise.resolve(compressAudio(file.path, compressedFilePath));
+            } catch (error) {
+                fs.createReadStream(file.path).pipe(fs.createWriteStream(compressedFilePath)); 
+            }
 
             await fs.unlinkSync(file.path);
 
-            fileUrl = `${req.protocol}://${req.get('host')}/uploads/audios/${originalHash}.wav`;
+            fileUrl = `https://mylevel.eu/uploads/audios/${originalHash}.wav`;
         } else {
             return res.status(400).json({ error: "File type is not supported." });
         }

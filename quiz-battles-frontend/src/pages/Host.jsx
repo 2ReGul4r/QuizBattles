@@ -27,8 +27,8 @@ const Host = () => {
     };
 
     const handleHost = (quizbattleID) => {
-        socket.emit("hostQuizBattle", quizbattleID, async (roomID, roomState) => {
-            await navigate("/game", { state: { roomID, roomState }})
+        socket.emit("hostQuizBattle", quizbattleID, async (roomID) => {
+            await navigate("/game", { state: { roomID }})
             socket.emit("hostNavigationComplete");
         });
     };
