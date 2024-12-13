@@ -37,11 +37,11 @@ export const GameContextProvider = ({ children, roomID }) => {
         });
     }, [isConnected])
 
-	return (
-		<GameContext.Provider value={{ activeRoom, gameState, hostState, roomState, markedQuestion, activeQuestionIndex, setActiveQuestionIndex }}>
-			{children}
-		</GameContext.Provider>
-	);
+    return (
+        <GameContext.Provider value={{ activeRoom, gameState, hostState, roomState, markedQuestion, activeQuestionIndex, setActiveQuestionIndex }}>
+            {children}
+        </GameContext.Provider>
+    );
 };
 
 export const useGameContext = () => useContext(GameContext);

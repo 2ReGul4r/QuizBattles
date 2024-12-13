@@ -9,7 +9,8 @@ const QuestionScreen = () => {
     const { userState } = useUser();
     const [localBuzzed, setLocalBuzzed] = useState(false);
     const [buzzerTimer, setbuzzerTimer] = useState(0);
-    const [buzzerResults, setBuzzerResults] = useState([])
+    const [buzzerResults, setBuzzerResults] = useState([]);
+    const [guessAnswer, setGuessAnswer] = useState("");
 
     useEffect(() => {
         socket.on("buzzerResults", (results) => {
@@ -32,6 +33,14 @@ const QuestionScreen = () => {
     }, [gameState.activeBuzzer]);
     
     const handleKeyPressEvent = (event) => {
+        // Prüfen, ob das aktive Element ein Eingabefeld ist
+        if (
+            activeElement.tagName === 'INPUT' ||
+            activeElement.tagName === 'TEXTAREA' ||
+            activeElement.isContentEditable
+        ) {
+            return; // Event ignorieren
+        }
         if (event.code === "Space") {
             event.preventDefault();
             handleBuzzerPress();
@@ -45,6 +54,48 @@ const QuestionScreen = () => {
         });
     };
 
+    const getFakeGuesses = () => {
+        return {
+            "66eec8d1f1cbe2add4a21cd8": {
+                "username": "User1",
+                "guess": "Antwort1"
+            },
+            "66eec8d1f1c1dd4a21cd8": {
+                "username": "test2",
+                "guess": "Antwort1"
+            },
+            "66eec8d1f1cb2dd4a21cd8": {
+                "username": "User3",
+                "guess": "Antwort1"
+            },
+            "66eec8d1f1cb34a21cd8": {
+                "username": "User4",
+                "guess": "a"
+            },
+            "66eec8d1f1c4dd4a21cd8": {
+                "username": "User5",
+                "guess": "Antwortasdasdasdasdasdasd1"
+            },
+            "66eec8d1f1cbe5add4a21cd8": {
+                "username": "User6",
+                "guess": "Antwort1"
+            },
+            "66eec8d1f1cbe2a6d4a21cd8": {
+                "username": "User7",
+                "guess": "Antwort1"
+            },
+            "66eec8d1232a6d4a21cd8": {
+                "username": "User8",
+            }
+        }
+    }
+
+    const handleGuessAnswerInput = (event) => {
+        const answer = event.target.value;
+        setGuessAnswer(answer);
+        socket.emit("guessAnswerUpdate", answer);
+    };
+
     const handleSkipPress = () => {
         socket.emit("skippingPress", activeRoom);
     };
@@ -55,6 +106,18 @@ const QuestionScreen = () => {
 
     const handleWrongAnswer = () => {
         socket.emit("wrongBuzzerAnswer", activeRoom);
+    };
+
+    const handleCorrectGuess = (userID, event) => {
+        const parent = event.target.parentElement;
+        Array.from(parent.children).map((elements) => elements.disabled = true);
+        socket.emit("correctGuess", userID);
+    };
+
+    const handleWrongGuess = (userID, event) => {
+        const parent = event.target.parentElement;
+        Array.from(parent.children).map((elements) => elements.disabled = true);
+        socket.emit("wrongGuess", userID);
     };
 
     const getRoomStateAnswerToQuestion = () => {
@@ -98,14 +161,17 @@ const QuestionScreen = () => {
             {/*USER CONTROLS */}
             {userState.userID !== gameState.host.userID && !Object.keys(gameState.activeBuzzer).length && gameState.hasActiveQuestion && (
                 <div className="card bg-base-100 shadow-xl items-center text-center flex-grow basis-full p-4 gap-4">
-                    <div className="card-actions">
+                    {gameState.activeQuestion.questionType === "guess" &&
+                        <div className="card-title">{gameState.activeGuessInput ? "Give your guess" : "Guesses are locked!"}</div>
+                    }
+                    <div className="card-actions w-2/3 justify-center">
                         {gameState.activeQuestion.questionType === "buzzer" && (
                             <button className={`btn h-8 w-64 ${!localBuzzed ? "btn-success" : "btn-warning" } ${gameState.buzzeredPlayers?.some(playerObj => playerObj.userID === userState.userID) && "btn-disabled"}`} onClick={handleBuzzerPress}>BUZZER</button>
                         )}
                         {gameState.activeQuestion.questionType === "guess" && (
-                            <input type="text" placeholder="Answer" className="input input-bordered w-full" onInput={"updateInput"} />
+                            <input type="text" disabled={!gameState.activeGuessInput} placeholder="Answer" className={`input input-bordered w-full ${!gameState.activeGuessInput && "input-disabled"}`} onInput={handleGuessAnswerInput} />
                         )}
-                        {!gameState.buzzeredPlayers?.some(playerObj => playerObj.userID === userState.userID) && (
+                        {!gameState.buzzeredPlayers?.some(playerObj => playerObj.userID === userState.userID) && gameState.activeQuestion.questionType === "buzzer" && (
                             <button className="btn btn-outline btn-error" onClick={handleSkipPress}>{Object.keys(gameState.skippingPlayers).includes(userState.userID) ? "Unskip" : "Skip" }</button>
                         )}
                     </div>
@@ -168,6 +234,25 @@ const QuestionScreen = () => {
                     })}
                 </div>
             )}
+            {userState.userID === gameState.host.userID && gameState.activeQuestion.questionType === "guess" && !!Object.keys(hostState).length &&
+                <div className="card bg-base-100 shadow-xl items-center text-center p-4 gap-4 w-full">
+                    <h2 className="card-title text-2xl">Guesses</h2>
+                    <div className="flex items-stretch flex-wrap justify-center flex-row gap-4 w-full">
+                        {Array.from(Object.entries(hostState.activeGuesses) || []).map(([userID, guessObj], index) => {
+                            return (
+                                <div key={userID} className="card bg-base-200 shadow-xl items-center text-center flex-grow flex-shrink w-1/5 p-4 gap-4">
+                                    <div className="card-title">{guessObj.username}</div>
+                                    <p className="overflow-x-auto w-full">{guessObj.guess || "No guess given!"}</p>
+                                    <div className="card-actions justify-center">
+                                        <button className="btn btn-success" onClick={(event) => handleCorrectGuess(userID, event)}>Correct answer</button>
+                                        <button className="btn btn-error" onClick={(event) => handleWrongGuess(userID, event)}>Wrong answer</button>
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+            }
         </div>
     )
 };

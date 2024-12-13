@@ -1,6 +1,7 @@
-import { removePlayerFromRoom, isUserInARoom, sendUpdates, isHostOfRoom, doesRoomExist, deleteRoom } from "../utils/quizbattleUtils.js";
+import { getCurrentRoomOfUserID, removePlayerFromRoom, isUserInARoom, sendUpdates, isHostOfRoom, doesRoomExist, deleteRoom } from "../utils/quizbattleUtils.js";
 
-export default (socket, roomID) => {
+export default (socket) => {
+    const roomID = getCurrentRoomOfUserID(socket.user.userID);
     if (!isUserInARoom(socket.user.userID) && !isHostOfRoom(socket.user.userID, roomID)) {
         socket.emit("sendError", { error: "You are not in a game."});
         return
@@ -17,4 +18,4 @@ export default (socket, roomID) => {
         removePlayerFromRoom(socket, socket.user.userID, roomID);
         sendUpdates(roomID);
     }
-}
+};

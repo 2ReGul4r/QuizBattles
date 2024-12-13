@@ -12,4 +12,4 @@ export default (socket, roomID, changeScoreState) => {
     const {userID, score, username} = changeScoreState;
     setScoreOfPlayer(userID, roomID, score);
     sendUpdates(roomID);
-}
+};

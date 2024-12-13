@@ -19,4 +19,4 @@ export default (socket, index, roomID) => {
         return
     }
     io.to(roomID).emit("markedQuestion", index);
-}
+};

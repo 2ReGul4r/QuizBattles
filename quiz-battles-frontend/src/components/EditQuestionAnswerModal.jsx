@@ -169,7 +169,7 @@ const EditQuestionAnswerModal = ({modalIndex, categoryIndex, questionIndex}) => 
                             <select className="select select-bordered w-full mb-2" defaultValue={question.questionType} onChange={(event) => setQuestionOption("questionType", event.target.value)}>
                                 <option disabled value={"default"} className="font-bold">Question type</option>
                                 <option value="buzzer">Buzzer</option>
-                                <option disabled value="guess">Guess</option>
+                                <option value="guess">Guess</option>
                                 <option disabled value="comingsoon">More coming soon</option>
                             </select>
                             <label className="input input-bordered flex items-center gap-4 w-full">

@@ -20,6 +20,10 @@ const QuestionAnswerScreen = () => {
         socket.emit("toggleReveal", categoryIndex, questionIndex, activeRoom);
     };
 
+    const handleLockGuess = () => {
+        socket.emit("toggleActiveGuessInput");
+    };
+
     const handlBackToBoard = () => {
         socket.emit("backToBoard", activeRoom);
     };
@@ -52,6 +56,9 @@ const QuestionAnswerScreen = () => {
                 <div className="card bg-base-100 shadow-xl items-center text-center flex-grow basis-full p-4 gap-4">
                     <h2 className="card-title">Host controls</h2>
                     <div className="card-actions">
+                        {gameState.activeQuestion.questionType === "guess" &&
+                            <button className="btn btn-warning" onClick={handleLockGuess}>{gameState.activeGuessInput ? "Lock" : "Unlock"} guesses</button>
+                        }
                         <button className="btn btn-success" onClick={handleReveal}>Reveal {!Object.keys(gameState.activeQuestion).length ? "question" : "answer"}</button>
                         <button className="btn btn-error" onClick={handlEndQuestion}>Close question</button>
                         <button className="btn btn-primary" onClick={handlBackToBoard}>Back to board</button>

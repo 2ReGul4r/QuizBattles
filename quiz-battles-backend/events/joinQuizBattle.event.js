@@ -19,4 +19,4 @@ export default async (socket, roomID, callback) => {
         if (roomState.activePlayer.userID === null) setActivePlayer(activePlayerUserID, roomID);
         sendUpdates(roomID);
      });
-} 
+};

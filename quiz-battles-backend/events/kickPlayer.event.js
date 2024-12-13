@@ -21,4 +21,4 @@ export default (socket, userID, roomID, callback) => {
     removePlayerFromRoom(userSocket, userID, roomID, true, "Your were kicked from this game");
     sendUpdates(roomID);
     callback(true);
-}
+};

@@ -1,4 +1,4 @@
-import { sendUpdates, doesRoomExist, hasRoomActiveQuestion, isHostOfRoom, setActiveQuestion, resetActiveAnswer, setHasActiveQuestion } from "../utils/quizbattleUtils.js";
+import { sendUpdates, doesRoomExist, hasRoomActiveQuestion, isHostOfRoom, setActiveQuestion, resetActiveAnswer, setHasActiveQuestion, checkActiveQuestionType, setActiveGuessInput } from "../utils/quizbattleUtils.js";
 import { io } from "../socket/socket.js";
 
 export default (socket, categoryIndex, questionIndex, roomID) => {
@@ -17,6 +17,9 @@ export default (socket, categoryIndex, questionIndex, roomID) => {
     setHasActiveQuestion(roomID, true);
     resetActiveAnswer(roomID);
     setActiveQuestion(categoryIndex, questionIndex, roomID);
+    if (checkActiveQuestionType(roomID, "guess")) {
+        setActiveGuessInput(roomID, true);
+    }
     sendUpdates(roomID);
     io.to(roomID).emit("markedQuestion", -1);
-}
+};

@@ -23,6 +23,16 @@ const Game = () => {
   }, []);
 
   const handleKeyPressEvent = (event) => {
+    const activeElement = document.activeElement;
+
+    // Prüfen, ob das aktive Element ein Eingabefeld ist
+    if (
+      activeElement.tagName === 'INPUT' ||
+      activeElement.tagName === 'TEXTAREA' ||
+      activeElement.isContentEditable
+    ) {
+      return; // Event ignorieren
+    }
     if (event.code === "KeyS") handleOpenScoreBoard();
   };
 
@@ -48,7 +58,7 @@ const Game = () => {
   };
 
   const handleLeave = () => {
-    socket.emit("leaveGame", activeRoom);
+    socket.emit("leaveGame");
   };
 
   const handleScoreClick = (userID) => {

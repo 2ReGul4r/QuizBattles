@@ -64,6 +64,8 @@ export function cleanUpActives(roomID) {
     roomState.activeGuesses = {};
     roomState.skippingPlayers = {};
     roomState.buzzeredPlayers = [];
+    roomState.activeGuesses = {};
+    roomState.activeGuessInput = false;
 };
 
 export function cleanUpRoom(roomID) {
@@ -127,6 +129,7 @@ export async function createInitialRoomState(socket, quizbattleID) {
         activeAnswer: {},
         activeBuzzer: {}, // userID, username
         activeGuesses: {}, // key: UserID, value string guess
+        activeGuessInput: false,
         skippingPlayers: {},
         buzzeredPlayers: [],
         score: {},
@@ -196,6 +199,12 @@ export function hasRoomActiveBuzzer(roomID) {
     return !!Object.keys(roomState?.activeBuzzer).length
 };
 
+export function hasRoomActiveGuessInput(roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return false
+    return !!roomState.activeGuessInput
+}
+
 export function hasRoomActiveQuestion(roomID) {
     const roomState = getRoomState(roomID);
     if (!roomState) return false
@@ -214,8 +223,9 @@ export function isActiveQuizBattleHost(userID) {
 
 export function isHostOfRoom(userID, roomID) {
     const roomState = getRoomState(roomID);
-    if (!roomState) return false
-    return roomState?.host?.userID === userID
+    //if (!roomState) return false
+    const isHost = roomState?.host?.userID === userID;
+    return isHost
 };
 
 export function isRoomFull(roomID) {
@@ -281,6 +291,7 @@ export function mapRoomStateToGameState(roomState) {
         activeQuestion: createDeepCopy(roomState.activeQuestion),
         activeAnswer: createDeepCopy(roomState.activeAnswer),
         activeBuzzer: createDeepCopy(roomState.activeBuzzer),
+        activeGuessInput: createDeepCopy(roomState.activeGuessInput),
         skippingPlayers: createDeepCopy(roomState.skippingPlayers),
         buzzeredPlayers: createDeepCopy(roomState.buzzeredPlayers),
         score: createDeepCopy(roomState.score),
@@ -290,7 +301,7 @@ export function mapRoomStateToGameState(roomState) {
 
 export function mapRoomStateToHostState(roomState) {
     return {
-        
+        activeGuesses: createDeepCopy(roomState.activeGuesses),
     }
 };
 
@@ -317,6 +328,30 @@ export function markBuzzerAsWrong(roomID) {
     const scoreChange = parseInt((roomState.activeQuestion.worth) * (roomState.quizbattle.options.money.lossOnWrongAnswer || 0.5)) * -1;
     changeScoreOfPlayer(userID, roomID, scoreChange);
     cancleActiveBuzzer(roomID);
+};
+
+export function markGuessAsCorrect(userID, roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return
+    const scoreChange = roomState.activeQuestion.worth;
+    changeScoreOfPlayer(userID, roomID, scoreChange);
+};
+
+export function markGuessAsWrong(userID, roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return
+    const scoreChange = parseInt((roomState.activeQuestion.worth) * (roomState.quizbattle.options.money.lossOnWrongAnswer || 0.5)) * -1;
+    changeScoreOfPlayer(userID, roomID, scoreChange);
+};
+
+export function overwriteCurrentGuess(userID, username, roomID, currentGuess) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return
+    if (!userID) return
+    roomState.activeGuesses[userID] = {
+        username,
+        guess: currentGuess
+    };
 };
 
 export function removePlayerFromRoom(socket, userID, roomID, sendError, errorMessage) {
@@ -396,6 +431,12 @@ export function setActiveBuzzer(userID, username, correctedBuzzTime, roomID) {
     roomIDBuzzerTimeoutMap.set(roomID, timeoutID);
 };
 
+export function setActiveGuessInput(roomID, newValue) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return false
+    roomState.activeGuessInput = newValue;
+};
+
 export function setActivePlayer(userID, roomID) {
     const roomState = getRoomState(roomID);
     if (!roomState) return false
@@ -456,6 +497,12 @@ export function setScoreOfPlayer(userID, roomID, score) {
     const roomState = getRoomState(roomID);
     if (!roomState) return
     roomState.score[userID].score = score;
+};
+
+export function toggleActiveGuessInput(roomID) {
+    const roomState = getRoomState(roomID);
+    if (!roomState) return
+    setActiveGuessInput(roomID, !roomState.activeGuessInput);
 };
 
 export function tryToReconnect(socket) {

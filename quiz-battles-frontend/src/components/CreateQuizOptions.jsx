@@ -5,7 +5,7 @@ const CreateQuizOptions = () => {
     const { state, dispatch } = useContext(QuizBattleContext);
 
     const spansTimer = [];
-    for (let i = 10; i <= 60; i += 5) {
+    for (let i = 10; i <= 30; i += 1) {
         spansTimer.push(
         <span key={i}>
             {i}s
