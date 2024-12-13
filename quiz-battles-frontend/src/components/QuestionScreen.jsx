@@ -238,18 +238,16 @@ const QuestionScreen = () => {
                 <div className="card bg-base-100 shadow-xl items-center text-center p-4 gap-4 w-full">
                     <h2 className="card-title text-2xl">Guesses</h2>
                     <div className="flex items-stretch flex-wrap justify-center flex-row gap-4 w-full">
-                        {Array.from(Object.entries(hostState.activeGuesses) || []).map(([userID, guessObj], index) => {
-                            return (
-                                <div key={userID} className="card bg-base-200 shadow-xl items-center text-center flex-grow flex-shrink w-1/5 p-4 gap-4">
-                                    <div className="card-title">{guessObj.username}</div>
-                                    <p className="overflow-x-auto w-full">{guessObj.guess || "No guess given!"}</p>
-                                    <div className="card-actions justify-center">
-                                        <button className="btn btn-success" onClick={(event) => handleCorrectGuess(userID, event)}>Correct answer</button>
-                                        <button className="btn btn-error" onClick={(event) => handleWrongGuess(userID, event)}>Wrong answer</button>
-                                    </div>
+                        {Object.entries(gameState.players).map(([userID, playerObject]) => (
+                            <div key={userID} className="card bg-base-200 shadow-xl items-center text-center flex-grow flex-shrink w-1/5 p-4 gap-4">
+                                <div className="card-title">{playerObject.username}</div>
+                                <p className="overflow-x-auto w-full">{hostState.activeGuesses[userID]?.guess || "No guess given!"}</p>
+                                <div className="card-actions justify-center">
+                                    <button className="btn btn-success" onClick={(event) => handleCorrectGuess(userID, event)}>Correct answer</button>
+                                    <button className="btn btn-error" onClick={(event) => handleWrongGuess(userID, event)}>Wrong answer</button>
                                 </div>
-                            )
-                        })}
+                            </div>
+                        ))}
                     </div>
                 </div>
             }
