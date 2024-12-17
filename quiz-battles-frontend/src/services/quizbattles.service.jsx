@@ -6,7 +6,7 @@ export const createQuizBattle = async () => {
   const response = await axios.post(`${API_URL}/quizbattle/create`, {} , { withCredentials: true});
   toast.success("QuizBattle was created.")
   return response.data;
-}
+};
 
 export const saveQuizBattle = async (state) => {
   const response = await axios.post(`${API_URL}/quizbattle/save`, state, { withCredentials: true});
@@ -17,14 +17,14 @@ export const saveQuizBattle = async (state) => {
 export const getQuizBattles = async () => {
   const response = await axios.get(`${API_URL}/quizbattle/get`, { withCredentials: true});
   return response.data;
-}
+};
 
 export const readQuizBattle = async (quizbattleID) => {
   const response = await axios.get(`${API_URL}/quizbattle/read`, { params: { quizbattleID }, withCredentials: true});
   return response.data;
-}
+};
 
 export const deleteQuizBattle = async (quizbattleID) => {
   const response = await axios.post(`${API_URL}/quizbattle/delete`, {quizbattleID}, { withCredentials: true});
   return response.data;
-}
+};

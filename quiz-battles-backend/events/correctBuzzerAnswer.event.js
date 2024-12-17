@@ -1,6 +1,7 @@
-import { markBuzzerAsCorrect, checkActiveQuestionType,hasRoomActiveBuzzer, sendUpdates, doesRoomExist, hasRoomActiveQuestion, isHostOfRoom, setHasActiveQuestion } from "../utils/quizbattleUtils.js";
+import { markBuzzerAsCorrect, checkActiveQuestionType, hasRoomActiveBuzzer, sendUpdates, doesRoomExist, hasRoomActiveQuestion, isHostOfRoom, setHasActiveQuestion, getCurrentRoomOfUserID } from "../utils/quizbattleUtils.js";
 
-export default (socket, roomID) => {
+export default (socket) => {
+    const roomID = getCurrentRoomOfUserID(socket.user.userID);
     if (!doesRoomExist(roomID)) {
         socket.emit("sendError", { error: "This room does not exist."});
         return

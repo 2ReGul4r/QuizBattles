@@ -38,6 +38,10 @@ body.modal-open {
   filter: drop-shadow(0 0 0.5rem #FFA500);
 }
 
+.answered-correct-width {
+  width: calc(100% - 2rem);
+}
+
 @media (min-width: 320px) {
   .mi\:flex {
     display: block !important;

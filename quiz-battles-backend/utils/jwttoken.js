@@ -11,7 +11,7 @@ const generateTokenAndSetCookie = (userID, email, username, isAdmin, daysToExpir
         sameSite: "Lax",
         secure: process.env.NODE_ENV !== "development",
         path: "/"
-    })
+    });
 };
 
 export default generateTokenAndSetCookie;

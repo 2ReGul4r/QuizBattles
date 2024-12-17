@@ -4,7 +4,7 @@ import { useUser } from "../contexts/UserContext";
 import { useEffect, useState } from "react";
 
 const QuestionScreen = () => {
-    const { gameState, activeRoom, hostState, roomState } = useGameContext();
+    const { gameState, hostState, roomState } = useGameContext();
     const { socket } = useSocketContext();
     const { userState } = useUser();
     const [localBuzzed, setLocalBuzzed] = useState(false);
@@ -33,15 +33,16 @@ const QuestionScreen = () => {
     }, [gameState.activeBuzzer]);
     
     const handleKeyPressEvent = (event) => {
+        const activeElement = document.activeElement;
         // Prüfen, ob das aktive Element ein Eingabefeld ist
         if (
-            activeElement.tagName === 'INPUT' ||
-            activeElement.tagName === 'TEXTAREA' ||
-            activeElement.isContentEditable
+          activeElement.tagName === 'INPUT' ||
+          activeElement.tagName === 'TEXTAREA' ||
+          activeElement.isContentEditable
         ) {
-            return; // Event ignorieren
+          return; // Event ignorieren
         }
-        if (event.code === "Space") {
+        if (gameState.activeQuestion.questionType === "buzzer" && event.code === "Space") {
             event.preventDefault();
             handleBuzzerPress();
         }
@@ -49,46 +50,10 @@ const QuestionScreen = () => {
 
     const handleBuzzerPress = () => {
         if (Object.keys(gameState.activeBuzzer).length) return
-        socket.emit("buzzerPress", activeRoom, () => {
+        socket.emit("buzzerPress", () => {
             setLocalBuzzed(true);
         });
     };
-
-    const getFakeGuesses = () => {
-        return {
-            "66eec8d1f1cbe2add4a21cd8": {
-                "username": "User1",
-                "guess": "Antwort1"
-            },
-            "66eec8d1f1c1dd4a21cd8": {
-                "username": "test2",
-                "guess": "Antwort1"
-            },
-            "66eec8d1f1cb2dd4a21cd8": {
-                "username": "User3",
-                "guess": "Antwort1"
-            },
-            "66eec8d1f1cb34a21cd8": {
-                "username": "User4",
-                "guess": "a"
-            },
-            "66eec8d1f1c4dd4a21cd8": {
-                "username": "User5",
-                "guess": "Antwortasdasdasdasdasdasd1"
-            },
-            "66eec8d1f1cbe5add4a21cd8": {
-                "username": "User6",
-                "guess": "Antwort1"
-            },
-            "66eec8d1f1cbe2a6d4a21cd8": {
-                "username": "User7",
-                "guess": "Antwort1"
-            },
-            "66eec8d1232a6d4a21cd8": {
-                "username": "User8",
-            }
-        }
-    }
 
     const handleGuessAnswerInput = (event) => {
         const answer = event.target.value;
@@ -97,27 +62,30 @@ const QuestionScreen = () => {
     };
 
     const handleSkipPress = () => {
-        socket.emit("skippingPress", activeRoom);
+        socket.emit("skippingPress");
     };
 
     const handleCorrectAnswer = () => {
-        socket.emit("correctBuzzerAnswer", activeRoom);
+        socket.emit("correctBuzzerAnswer");
     };
 
     const handleWrongAnswer = () => {
-        socket.emit("wrongBuzzerAnswer", activeRoom);
+        socket.emit("wrongBuzzerAnswer");
     };
 
     const handleCorrectGuess = (userID, event) => {
-        const parent = event.target.parentElement;
-        Array.from(parent.children).map((elements) => elements.disabled = true);
+        disableGuessButtons(event);
         socket.emit("correctGuess", userID);
     };
 
     const handleWrongGuess = (userID, event) => {
+        disableGuessButtons(event);
+        socket.emit("wrongGuess", userID);
+    };
+
+    const disableGuessButtons = (event) => {
         const parent = event.target.parentElement;
         Array.from(parent.children).map((elements) => elements.disabled = true);
-        socket.emit("wrongGuess", userID);
     };
 
     const getRoomStateAnswerToQuestion = () => {
@@ -129,7 +97,7 @@ const QuestionScreen = () => {
     return (
         <div className="flex flex-col gap-4 flex-grow">
             <div className={`card bg-base-100 shadow-xl items-center text-center basis-full p-4 gap-4 ${gameState?.activeBuzzer?.userID === userState.userID && "buzzer-success"}`}>
-            <div className="flex flex-row w-full justify-between"><h2 className="text-2xl">Buzzer</h2><h2 className="text-2xl">{`+${gameState.activeQuestion.worth}$/-${parseInt(gameState.activeQuestion.worth * gameState.gameState.options.money.lossOnWrongAnswer)}$`}</h2></div>
+            <div className="flex flex-row w-full justify-between"><h2 className="text-2xl">{gameState.activeQuestion.questionType.toUpperCase() || ""}</h2><h2 className="text-2xl">{`+${gameState.activeQuestion.worth}$/-${parseInt(gameState.activeQuestion.worth * gameState.gameState.options.money.lossOnWrongAnswer)}$`}</h2></div>
                 {gameState.activeQuestion.question && (<div className="font-semibold self-center text-4xl">{gameState.activeQuestion.question}</div>)}
                 {Array.from(gameState.activeQuestion.picture).map((pictureBase64, index) => {
                     return (

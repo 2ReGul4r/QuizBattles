@@ -10,7 +10,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUserXmark } from "@fortawesome/free-solid-svg-icons";
 
 const Game = () => {
-  const { activeRoom, gameState } = useGameContext();
+  const { gameState } = useGameContext();
   const { socket } = useSocketContext();
   const { userState } = useUser();
   const [changeScoreState, setChangeScoreState] = useState({userID: null, score: 0, username: null});
@@ -43,7 +43,7 @@ const Game = () => {
   };
 
   const handleKick = (userID) => {
-    socket.emit("kickPlayer", userID, activeRoom, (didKick) => {
+    socket.emit("kickPlayer", userID, (didKick) => {
       if(didKick) {
         toast.success("Player was kicked");
       } else {
@@ -71,7 +71,11 @@ const Game = () => {
 
   const handleSavePlayerScore = () => {
     if (!isHost) return
-    socket.emit("changeScoreOfPlayer", activeRoom, changeScoreState);
+    if (isNaN(changeScoreState.score)) {
+      socket.emit("changeScoreOfPlayer", {...changeScoreState, score: 0});
+    } else {
+      socket.emit("changeScoreOfPlayer", changeScoreState);
+    }
   };
 
   const isGameOver = () => {
@@ -95,7 +99,7 @@ const Game = () => {
     <div>
       <div className={`card bg-base-200 shadow-xl items-center text-center basis-full ${gameState?.activePlayer?.userID === userState.userID && (!Object.keys(gameState.activeQuestion).length && !Object.keys(gameState.activeAnswer).length) && !isGameOver() && "marked-question-border"}`}>
         <div className="card-body w-full">
-        {activeRoom && (<h2 className="absolute top-4 left-4 text-2xl cursor-pointer" onClick={() => handleCopytoClipboard(activeRoom)}>Code: {activeRoom}</h2>)}
+        {gameState.roomID && (<h2 className="absolute top-4 left-4 text-2xl cursor-pointer" onClick={() => handleCopytoClipboard(gameState.roomID)}>Code: {gameState.roomID}</h2>)}
         <button className="btn btn-outline btn-error absolute top-4 right-4" onClick={handleLeave}>{isHost() ? "Close game" : "Leave game"}</button>
           <h3 className="card-title self-center pb-4">{gameState.gameState.name} by {gameState.host.username}</h3>
           {

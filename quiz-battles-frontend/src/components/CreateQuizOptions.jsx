@@ -5,7 +5,7 @@ const CreateQuizOptions = () => {
     const { state, dispatch } = useContext(QuizBattleContext);
 
     const spansTimer = [];
-    for (let i = 10; i <= 30; i += 1) {
+    for (let i = 10; i <= 45; i += 5) {
         spansTimer.push(
         <span key={i}>
             {i}s
@@ -25,16 +25,16 @@ const CreateQuizOptions = () => {
     const handleNameChange = (event) => {
         const newName = event.target.value;
         dispatch({ type: "SET_NAME", payload: newName })
-    }
+    };
 
     const handleOptionsChange = (option, newValue) => {
         dispatch({ type: "UPDATE_QUIZ_OPTION", option, payload: newValue });
-    }
+    };
 
     const handleCategoryCountChange = (event) => {
         const newValue = parseInt(event.target.value);
         dispatch({ type: "SET_CATEGORY_COUNT", payload: newValue });
-    }
+    };
 
     return (
         <div className="flex items-stretch flex-wrap gap-8 justify-center flex-row">
@@ -65,7 +65,7 @@ const CreateQuizOptions = () => {
             <div className="card bg-base-200 shadow-xl items-center text-center flex-grow basis-80">
                 <div className="card-body justify-center w-full">
                     <h2 className="card-title self-center pb-4">Time to answer after buzzer: {state.options.quiz.buzzerAnswerTimer}s</h2>
-                    <input type="range" min={10} max="60" value={state.options.quiz.buzzerAnswerTimer} className="range range-primary" step="5" onChange={(event) => handleOptionsChange("buzzerAnswerTimer", parseInt(event.target.value))} />
+                    <input type="range" min={10} max="45" value={state.options.quiz.buzzerAnswerTimer} className="range range-primary" step="1" onChange={(event) => handleOptionsChange("buzzerAnswerTimer", parseInt(event.target.value))} />
                     <div className="w-full justify-between px-2 text-xs hidden min-[480px]:flex">
                         {spansTimer}
                     </div>

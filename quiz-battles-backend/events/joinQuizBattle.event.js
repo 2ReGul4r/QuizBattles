@@ -1,9 +1,12 @@
-import { doesRoomExist, logData, isRoomFull, joinToRoom, getRoomState, sendUpdates, setActivePlayer } from "../utils/quizbattleUtils.js";
+import { doesRoomExist, isRoomFull, joinToRoom, getRoomState, sendUpdates, setActivePlayer, getCurrentRoomOfUserID, tryToReconnect } from "../utils/quizbattleUtils.js";
 
 export default async (socket, roomID, callback) => {
+    if (getCurrentRoomOfUserID(socket.user.userID)) {
+        tryToReconnect(socket);
+        return
+    }
     if (!(doesRoomExist(roomID))) { //If room does not exist
         socket.emit("sendError", { error: "This room does not exist."});
-        logData();
         return
     }
     if (isRoomFull(roomID)) {

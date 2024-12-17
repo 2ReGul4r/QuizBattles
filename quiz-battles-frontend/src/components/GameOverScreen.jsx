@@ -32,7 +32,7 @@ const GameOverScreen = () => {
                 <div key={index} className={`card bg-base-100 shadow-xl items-center text-center flex-grow basis-full p-4 gap-4 ${index == 0 && "text-primary"}`}>
                     <h3 className="text-3xl font-semibold self-center btn-disabled">{scoreObject.username}</h3>
                     {typeof scoreObject?.score === "number" && (<p className="text-lg self-center font-medium btn-disabled">Score: {scoreObject.score}</p>)}
-                    {typeof scoreObject?.money === "number" && gameState.gameState.options.battle.enabled && (<p className="text-lg self-center font-medium btn-disabled">Money: {scoreObject.money}$</p>)}
+                    {/*typeof scoreObject?.money === "number" && gameState.gameState.options.battle.enabled && (<p className="text-lg self-center font-medium btn-disabled">Money: {scoreObject.money}$</p>)*/}
                 </div>
               ))}
         </div>

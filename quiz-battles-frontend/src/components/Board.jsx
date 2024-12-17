@@ -5,7 +5,7 @@ import { faHeadphones, faImage, faLock } from "@fortawesome/free-solid-svg-icons
 import { useUser } from "../contexts/UserContext";
 
 const Board = () => {
-    const { gameState, activeRoom, markedQuestion, setActiveQuestionIndex } = useGameContext();
+    const { gameState, markedQuestion, setActiveQuestionIndex } = useGameContext();
     const { socket, isConnected } = useSocketContext();
     const { userState } = useUser();
 
@@ -60,10 +60,10 @@ const Board = () => {
             const categoryIndex = index%gameState.gameState.options.quiz.categoryCount;
             const questionIndex = Math.floor(index/gameState.gameState.options.quiz.categoryCount);
             setActiveQuestionIndex(index);
-            socket.emit("revealQuestion", categoryIndex, questionIndex, activeRoom);
+            socket.emit("revealQuestion", categoryIndex, questionIndex);
         }
         if (userState.userID !== gameState.activePlayer.userID) return
-        socket.emit("markQuestion", index, activeRoom);
+        socket.emit("markQuestion", index);
     };
 
     const getQuestionCursor = (index) => {
@@ -97,7 +97,7 @@ const Board = () => {
                         className={`flex flex-col flex-grow flex-shrink basis-auto p-6 ${getQuestionCursor(index)}`}
                         onClick={() => handleQuestionClick(index)}
                     >
-                        {isQuestionAnswered(index) && <div className="absolute top-4 left-4">{questionAnsweredBy(index)}</div>}
+                        {isQuestionAnswered(index) && <div className="absolute top-2 left-4 text-xs overflow-hidden whitespace-nowrap answered-correct-width">{questionAnsweredBy(index)}</div>}
                         <div className="card-title self-center text-2xl">{isQuestionLocked(index) ? (<span className="flex flex-row gap-1"><FontAwesomeIcon className="self-center" icon={faLock}/><p>{getQuestion(index).isLockedForCount - gameState.questionsAnsweredCount}</p></span>) : getWorthForQuestion(index)}</div>
                         <div className="card-actions">
                             {hasQuestionPicture(index) && <FontAwesomeIcon className="absolute bottom-4 left-4" icon={faImage} />}

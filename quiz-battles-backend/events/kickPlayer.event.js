@@ -1,7 +1,8 @@
-import { isActiveQuizBattleHost, isUserInThisRoom, isHostOfRoom, getUserSocket, removePlayerFromRoom, sendUpdates } from "../utils/quizbattleUtils.js";
+import { isActiveQuizBattleHost, isUserInThisRoom, isHostOfRoom, getUserSocket, removePlayerFromRoom, sendUpdates, getCurrentRoomOfUserID } from "../utils/quizbattleUtils.js";
 
-export default (socket, userID, roomID, callback) => {
-    if (!isActiveQuizBattleHost) {
+export default (socket, userID, callback) => {
+    const roomID = getCurrentRoomOfUserID(socket.user.userID);
+    if (!isActiveQuizBattleHost(socket.user.userID)) {
         socket.emit("sendError", { error: "You do not host a game."});
         return
     }

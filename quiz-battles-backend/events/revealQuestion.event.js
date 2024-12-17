@@ -1,7 +1,8 @@
-import { sendUpdates, doesRoomExist, hasRoomActiveQuestion, isHostOfRoom, setActiveQuestion, resetActiveAnswer, setHasActiveQuestion, checkActiveQuestionType, setActiveGuessInput } from "../utils/quizbattleUtils.js";
+import { sendUpdates, doesRoomExist, hasRoomActiveQuestion, isHostOfRoom, setActiveQuestion, resetActiveAnswer, setHasActiveQuestion, checkActiveQuestionType, setActiveGuessInput, getCurrentRoomOfUserID } from "../utils/quizbattleUtils.js";
 import { io } from "../socket/socket.js";
 
-export default (socket, categoryIndex, questionIndex, roomID) => {
+export default (socket, categoryIndex, questionIndex) => {
+    const roomID = getCurrentRoomOfUserID(socket.user.userID);
     if (!doesRoomExist(roomID)) {
         socket.emit("sendError", { error: "This room does not exist."});
         return

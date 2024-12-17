@@ -1,10 +1,11 @@
-import { sendUpdates, doesRoomExist, isHostOfRoom, setActiveBuzzer, hasRoomActiveQuestion, checkActiveQuestionType, hasRoomActiveBuzzer, buzzedBefore, removeFromSkippingPlayers } from "../utils/quizbattleUtils.js";
+import { sendUpdates, doesRoomExist, isHostOfRoom, setActiveBuzzer, hasRoomActiveQuestion, checkActiveQuestionType, hasRoomActiveBuzzer, buzzedBefore, removeFromSkippingPlayers, getCurrentRoomOfUserID } from "../utils/quizbattleUtils.js";
 import { io } from "../socket/socket.js";
 
 let buzzerEvents = [];
 let buzzerTimeout = null;
 
-export default (socket, roomID, callback) => {
+export default (socket, callback) => {
+    const roomID = getCurrentRoomOfUserID(socket.user.userID);
     if (!doesRoomExist(roomID)) {
         socket.emit("sendError", { error: "This room does not exist."});
         return

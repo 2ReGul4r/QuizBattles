@@ -12,13 +12,47 @@ const roomIDBuzzerTimerIntervalMap = new Map();
 
 const maxPlayers = 16;
 
+/*Debug Util*/
+
 export function logData() {
-    console.log("quizBattleState", quizBattleState);
-    console.log("userIDRoomIDMap", userIDRoomIDMap);
-    console.log("hostIDRoomIDMap", hostIDRoomIDMap);
-    console.log("roomIDBuzzerTimeoutMap", roomIDBuzzerTimeoutMap);
-    console.log("roomIDBuzzerTimerIntervalMap", roomIDBuzzerTimerIntervalMap);
+    return {
+        "quizBattleState": quizBattleState,
+        "userIDRoomIDMap": userIDRoomIDMap,
+        "hostIDRoomIDMap": hostIDRoomIDMap,
+        "roomIDBuzzerTimeoutMap": roomIDBuzzerTimeoutMap,
+        "roomIDBuzzerTimerIntervalMap": roomIDBuzzerTimerIntervalMap,
+    }
 };
+
+export function clearData() {
+    clearQuizBattlesState();
+    clearUserIDRoomIDMap();
+    clearHostIDRoomIDMap();
+    clearRoomIDBuzzerTimeoutMap();
+    clearRoomIDBuzzerTimerIntervalMap();
+};
+
+export function clearQuizBattlesState() {
+    quizBattleState = {};
+};
+
+export function clearUserIDRoomIDMap() {
+    userIDRoomIDMap.clear();
+};
+
+export function clearHostIDRoomIDMap() {
+    hostIDRoomIDMap.clear();
+};
+
+export function clearRoomIDBuzzerTimeoutMap() {
+    roomIDBuzzerTimeoutMap.clear();
+};
+
+export function clearRoomIDBuzzerTimerIntervalMap() {
+    roomIDBuzzerTimerIntervalMap.clear();
+};
+
+/*QuizBattle Util*/
 
 export function addToSkippingPlayers(userID, username, roomID) {
     const roomState = getRoomState(roomID);
@@ -112,7 +146,7 @@ export function checkForGameEnd(roomID) {
     }, (15 * 60 * 1000)); // DELETE ROOM AFTER 15 MINS AFTER GAME END IF STILL EXISTING
 };
 
-export async function createInitialRoomState(socket, quizbattleID) {
+export async function createInitialRoomState(socket, quizbattleID, roomID) {
     const quizbattle = await getQuizBattleByID(quizbattleID);
     const roomState = {
         host: {
@@ -121,6 +155,7 @@ export async function createInitialRoomState(socket, quizbattleID) {
             username: socket.user.username,
         },
         players: {},
+        roomID,
         quizbattle: createDeepCopy(quizbattle),
         activePlayer: {index: 0, userID: null},
         questionsAnsweredCount: 0,
@@ -140,9 +175,9 @@ export async function createInitialRoomState(socket, quizbattleID) {
 
 export async function createNewQuizBattleRoom(socket, quizbattleID) {
     const roomID = generateRandomString();
-    const newRoomState = await createInitialRoomState(socket, quizbattleID);
+    const newRoomState = await createInitialRoomState(socket, quizbattleID, roomID);
     hostIDRoomIDMap.set(socket.user.userID, roomID);
-    return {roomID, newRoomState};
+    return newRoomState;
 };
 
 export function deleteRoom(roomID) {
@@ -203,7 +238,7 @@ export function hasRoomActiveGuessInput(roomID) {
     const roomState = getRoomState(roomID);
     if (!roomState) return false
     return !!roomState.activeGuessInput
-}
+};
 
 export function hasRoomActiveQuestion(roomID) {
     const roomState = getRoomState(roomID);
@@ -280,6 +315,7 @@ export function mapRoomStateToGameState(roomState) {
             username: roomState.host.username
         },
         players: createDeepCopy(roomState.players),
+        roomID: roomState.roomID,
         activePlayer: createDeepCopy(roomState.activePlayer),
         gameState: {
             name: roomState.quizbattle.name,
@@ -309,14 +345,13 @@ export function markBuzzerAsCorrect(roomID) {
     const roomState = getRoomState(roomID);
     if (!roomState) return
     const userID = roomState.activeBuzzer.userID;
-    const username = roomState.activeBuzzer.username;
     const scoreChange = roomState.activeQuestion.worth;
     changeScoreOfPlayer(userID, roomID, scoreChange);
     cancleActiveBuzzer(roomID);
     const categoryIndex = roomState?.activeQuestion?.categoryIndex;
     const questionIndex = roomState?.activeQuestion?.questionIndex;
     if (typeof categoryIndex !== "number" || typeof questionIndex !== "number") return false
-    roomState.quizbattle.categories[categoryIndex].questions[questionIndex].answeredFrom.push({userID, username});
+    pushAnsweredFrom(roomState, userID);
     setActiveAnswer(categoryIndex, questionIndex, roomID);
     resetActiveQuestion(roomID);
 };
@@ -333,6 +368,7 @@ export function markBuzzerAsWrong(roomID) {
 export function markGuessAsCorrect(userID, roomID) {
     const roomState = getRoomState(roomID);
     if (!roomState) return
+    pushAnsweredFrom(roomState, userID);
     const scoreChange = roomState.activeQuestion.worth;
     changeScoreOfPlayer(userID, roomID, scoreChange);
 };
@@ -352,6 +388,18 @@ export function overwriteCurrentGuess(userID, username, roomID, currentGuess) {
         username,
         guess: currentGuess
     };
+};
+
+export function pushAnsweredFrom(roomState, userID) {
+    if (!roomState) return
+    if (!Object.keys(roomState.players).includes(userID)) {
+        return
+    }
+    const username = roomState.players[userID].username;
+    const categoryIndex = roomState?.activeQuestion?.categoryIndex;
+    const questionIndex = roomState?.activeQuestion?.questionIndex;
+    if (typeof categoryIndex !== "number" || typeof questionIndex !== "number") return false
+    roomState.quizbattle.categories[categoryIndex].questions[questionIndex].answeredFrom.push({userID, username});
 };
 
 export function removePlayerFromRoom(socket, userID, roomID, sendError, errorMessage) {
@@ -513,6 +561,7 @@ export function tryToReconnect(socket) {
     }
     const existingRoom = doesRoomExist(roomID);
     if (!existingRoom) {
+        userIDRoomIDMap.has(userID) ? userIDRoomIDMap.delete(userID) : hostIDRoomIDMap.delete(userID);
         socket.emit("redirectToHome");
         return
     }

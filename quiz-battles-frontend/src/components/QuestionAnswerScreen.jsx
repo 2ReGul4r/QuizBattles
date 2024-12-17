@@ -5,19 +5,19 @@ import { useSocketContext } from "../contexts/SocketContext";
 import { useUser } from "../contexts/UserContext";
 
 const QuestionAnswerScreen = () => {
-    const { gameState, activeRoom, activeQuestionIndex } = useGameContext();
+    const { gameState, activeQuestionIndex } = useGameContext();
     const { socket, isConnected } = useSocketContext();
     const { userState } = useUser();
 
     const handlEndQuestion = () => {
-        socket.emit("endQuestion", activeRoom);
+        socket.emit("endQuestion");
     };
 
     const handleReveal = () => {
         const index = activeQuestionIndex;
         const categoryIndex = index%gameState.gameState.options.quiz.categoryCount;
         const questionIndex = Math.floor(index/gameState.gameState.options.quiz.categoryCount);
-        socket.emit("toggleReveal", categoryIndex, questionIndex, activeRoom);
+        socket.emit("toggleReveal", categoryIndex, questionIndex);
     };
 
     const handleLockGuess = () => {
@@ -25,7 +25,7 @@ const QuestionAnswerScreen = () => {
     };
 
     const handlBackToBoard = () => {
-        socket.emit("backToBoard", activeRoom);
+        socket.emit("backToBoard");
     };
 
     if (!isConnected) {
@@ -61,8 +61,8 @@ const QuestionAnswerScreen = () => {
                         }
                         <button className="btn btn-success" onClick={handleReveal}>Reveal {!Object.keys(gameState.activeQuestion).length ? "question" : "answer"}</button>
                         <button className="btn btn-error" onClick={handlEndQuestion}>Close question</button>
-                        <button className="btn btn-primary" onClick={handlBackToBoard}>Back to board</button>
                         <p className="card bg-base-200 p-3 font-medium">{`${Object.keys(gameState.skippingPlayers).length} out of ${Object.keys(gameState.players).length - gameState.buzzeredPlayers.length} players are skipping.`}</p>
+                        <button className="btn btn-primary btn-outline" onClick={handlBackToBoard}>Back to board</button>
                     </div>
                 </div>
             )}

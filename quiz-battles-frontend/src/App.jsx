@@ -23,7 +23,7 @@ function App() {
   const toastOptions = {
     duration: 3000,
     style: { background: "#7480ff" , color: "black", fontWeight: "500" }
-  }
+  };
   return (
     <Router>
       <UserProvider>

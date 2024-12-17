@@ -1,11 +1,8 @@
-import { isUserInThisRoom, isHostOfRoom, isActivePlayer, hasRoomActiveQuestion } from "../utils/quizbattleUtils.js";
+import { isUserInThisRoom, isHostOfRoom, isActivePlayer, hasRoomActiveQuestion, getCurrentRoomOfUserID } from "../utils/quizbattleUtils.js";
 import { io } from "../socket/socket.js";
 
-export default (socket, index, roomID) => {
-    if (!isUserInThisRoom(socket.user.userID, roomID)) {
-        socket.emit("sendError", { error: "You are not in this game."});
-        return
-    }
+export default (socket, index) => {
+    const roomID = getCurrentRoomOfUserID(socket.user.userID);
     if (isHostOfRoom(socket.user.userID, roomID)) {
         socket.emit("sendError", { error: "You are the host of this game."});
         return
