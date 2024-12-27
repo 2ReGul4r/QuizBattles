@@ -2,6 +2,7 @@ import { useGameContext } from "../contexts/GameContext";
 import { useSocketContext } from "../contexts/SocketContext";
 import { useUser } from "../contexts/UserContext";
 import { useEffect, useState } from "react";
+import DOMPurify from 'dompurify';
 
 const QuestionScreen = () => {
     const { gameState, hostState, roomState } = useGameContext();
@@ -31,6 +32,18 @@ const QuestionScreen = () => {
             setBuzzerResults([]);
         }
     }, [gameState.activeBuzzer]);
+
+    DOMPurify.addHook('afterSanitizeAttributes', function (node) {
+        if ('target' in node) {
+          node.setAttribute('target', '_blank');
+        }
+        if (
+          !node.hasAttribute('target') &&
+          (node.hasAttribute('xlink:href') || node.hasAttribute('href'))
+        ) {
+          node.setAttribute('xlink:show', 'new');
+        }
+    });
     
     const handleKeyPressEvent = (event) => {
         const activeElement = document.activeElement;
@@ -98,7 +111,7 @@ const QuestionScreen = () => {
         <div className="flex flex-col gap-4 flex-grow">
             <div className={`card bg-base-100 shadow-xl items-center text-center basis-full p-4 gap-4 ${gameState?.activeBuzzer?.userID === userState.userID && "buzzer-success"}`}>
             <div className="flex flex-row w-full justify-between"><h2 className="text-2xl">{gameState.activeQuestion.questionType.toUpperCase() || ""}</h2><h2 className="text-2xl">{`+${gameState.activeQuestion.worth}$/-${parseInt(gameState.activeQuestion.worth * gameState.gameState.options.money.lossOnWrongAnswer)}$`}</h2></div>
-                {gameState.activeQuestion.question && (<div className="font-semibold self-center text-4xl">{gameState.activeQuestion.question}</div>)}
+                {gameState.activeQuestion.question && (<div className="font-semibold self-center text-4xl quiz-battle-question" dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(gameState.activeQuestion.question, {ALLOWED_TAGS: ['a', 'b', 'br', 'h3', 'h4', 'h5', 'sub', 'sup']})}}></div>)}
                 {Array.from(gameState.activeQuestion.picture).map((pictureBase64, index) => {
                     return (
                         <div key={index}>

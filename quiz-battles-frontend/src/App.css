@@ -60,6 +60,14 @@ body.modal-open {
   filter: drop-shadow(0 0 0.125rem #209920);
 }
 
+.quiz-battle-question a {
+  color: #4686cf;
+}
+
+.quiz-battle-question a:hover {
+  text-decoration: underline;
+}
+
 fieldset[disabled] label {
   cursor: not-allowed;
   --tw-border-opacity: 1;
